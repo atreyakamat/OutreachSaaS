@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes';
 import leadRoutes from './routes/lead.routes';
 import campaignRoutes from './routes/campaign.routes';
+import statsRoutes from './routes/stats.routes';
+import aiRoutes from './routes/ai.routes';
 
 dotenv.config();
 
@@ -21,6 +23,8 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/leads', leadRoutes);
 app.use('/api/campaigns', campaignRoutes);
+app.use('/api/stats', statsRoutes);
+app.use('/api/ai', aiRoutes);
 
 app.listen(PORT, () => {
   console.log(`Backend server is running on http://localhost:${PORT}`);
