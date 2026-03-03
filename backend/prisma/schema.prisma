@@ -1,0 +1,106 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id              String           @id @default(uuid())
+  name            String
+  createdAt       DateTime         @default(now())
+  users           User[]
+  leads           Lead[]
+  campaigns       Campaign[]
+  suppressionList SuppressionList[]
+  settings        Json?            // For rate limits, default sender info
+}
+
+model User {
+  id              String       @id @default(uuid())
+  email           String       @unique
+  passwordHash    String
+  role            String       @default("USER")
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  createdAt       DateTime     @default(now())
+}
+
+model Lead {
+  id              String         @id @default(uuid())
+  organizationId  String
+  organization    Organization   @relation(fields: [organizationId], references: [id])
+  companyName     String
+  domain          String
+  country         String
+  city            String
+  timezone        String         // IANA Timezone string (e.g., America/New_York)
+  contactName     String
+  email           String
+  status          String         @default("ACTIVE") // ACTIVE, UNSUBSCRIBED, BOUNCED
+  createdAt       DateTime       @default(now())
+  campaignLeads   CampaignLead[]
+  emailJobs       EmailJob[]
+}
+
+model Campaign {
+  id              String         @id @default(uuid())
+  organizationId  String
+  organization    Organization   @relation(fields: [organizationId], references: [id])
+  name            String
+  subjectTemplate String
+  bodyTemplate    String
+  status          String         @default("DRAFT") // DRAFT, ACTIVE, COMPLETED, PAUSED
+  createdAt       DateTime       @default(now())
+  campaignLeads   CampaignLead[]
+  emailJobs       EmailJob[]
+}
+
+model CampaignLead {
+  campaignId      String
+  campaign        Campaign       @relation(fields: [campaignId], references: [id])
+  leadId          String
+  lead            Lead           @relation(fields: [leadId], references: [id])
+  status          String         @default("PENDING") // PENDING, SCHEDULED, SENT, BOUNCED, REPLIED
+  
+  @@id([campaignId, leadId])
+}
+
+model EmailJob {
+  id              String       @id @default(uuid())
+  organizationId  String
+  campaignId      String
+  campaign        Campaign     @relation(fields: [campaignId], references: [id])
+  leadId          String
+  lead            Lead         @relation(fields: [leadId], references: [id])
+  scheduledAt     DateTime     // UTC timestamp for when this should be sent
+  status          String       @default("QUEUED") // QUEUED, PROCESSING, SENT, FAILED
+  providerMessageId String?
+  sentAt          DateTime?
+  createdAt       DateTime     @default(now())
+  events          Event[]
+}
+
+model Event {
+  id              String       @id @default(uuid())
+  emailJobId      String
+  emailJob        EmailJob     @relation(fields: [emailJobId], references: [id])
+  type            String       // OPEN, REPLY, CLICK, BOUNCE
+  timestamp       DateTime     @default(now())
+  metadata        Json?
+}
+
+model SuppressionList {
+  id              String       @id @default(uuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  email           String
+  reason          String       // UNSUBSCRIBE, BOUNCE, MANUAL
+  createdAt       DateTime     @default(now())
+  
+  @@unique([organizationId, email])
+}
