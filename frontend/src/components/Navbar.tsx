@@ -22,8 +22,11 @@ const Navbar = () => {
           <Link href="/discovery" className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-blue-600">
             <Users size={18} /> Discovery
           </Link>
+          <Link href="/pipeline" className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-blue-600">
+            <Target size={18} /> Pipeline
+          </Link>
           <Link href="/leads" className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-blue-600">
-            <Users size={18} /> Leads
+            <Users size={18} /> Contacts
           </Link>
           <Link href="/sequences" className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-blue-600">
             <Mail size={18} /> Sequences

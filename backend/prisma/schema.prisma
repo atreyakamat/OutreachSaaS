@@ -38,14 +38,15 @@ model Company {
   industry        String?
   city            String?
   country         String?
-  sizeRange       String?        // e.g. 10-300
+  sizeRange       String?        
   description     String?
   hiringSignal    String?
   score           Int            @default(0)
-  source          String?        // LinkedIn, Startup directory, etc.
+  source          String?        
   status          String         @default("IDENTIFIED") // IDENTIFIED, ENRICHED, READY
   createdAt       DateTime       @default(now())
-  leads           Lead[]
+  contacts        Lead[]
+  activityLogs    ActivityLog[]
 }
 
 model Lead {
@@ -53,15 +54,34 @@ model Lead {
   companyId       String
   company         Company        @relation(fields: [companyId], references: [id])
   contactName     String
-  role            String?        // Founder, HR, Talent Acquisition
+  role            String?        
   email           String
-  linkedinProfile String?
-  timezone        String?        // IANA Timezone string (e.g., America/New_York)
+  phone           String?
+  linkedinUrl     String?
+  timezone        String?        
   status          String         @default("ACTIVE") // ACTIVE, UNSUBSCRIBED, BOUNCED, REPLIED
-  pipelineStatus  String         @default("IDENTIFIED") // IDENTIFIED, FOUND, CONTACTED, REPLIED, DEMO, ONBOARDED
+  
+  // Pipeline Tracking
+  pipelineStage   String         @default("discovered") // discovered, contact identified, message sent, replied, demo scheduled, partner onboarded
+  lastContacted   DateTime?
+  nextFollowup    DateTime?
+  notes           String?
+  
   createdAt       DateTime       @default(now())
   sequenceStates  LeadSequenceState[]
   emailJobs       EmailJob[]
+  activityLogs    ActivityLog[]
+}
+
+model ActivityLog {
+  id              String       @id @default(uuid())
+  companyId       String
+  company         Company      @relation(fields: [companyId], references: [id])
+  leadId          String?
+  lead            Lead?        @relation(fields: [leadId], references: [id])
+  action          String       // e.g. "Message Sent", "Status Updated", "Note Added"
+  details         String?
+  timestamp       DateTime     @default(now())
 }
 
 model Sequence {
@@ -69,7 +89,7 @@ model Sequence {
   organizationId  String
   organization    Organization   @relation(fields: [organizationId], references: [id])
   name            String
-  status          String         @default("DRAFT") // DRAFT, ACTIVE, PAUSED
+  status          String         @default("DRAFT") 
   createdAt       DateTime       @default(now())
   steps           SequenceStep[]
   leadStates      LeadSequenceState[]
@@ -80,7 +100,7 @@ model SequenceStep {
   sequenceId      String
   sequence        Sequence       @relation(fields: [sequenceId], references: [id])
   orderIndex      Int
-  waitDays        Int            @default(0) // Days to wait AFTER the previous step
+  waitDays        Int            @default(0) 
   subjectTemplate String
   bodyTemplate    String
   emailJobs       EmailJob[]
@@ -92,8 +112,8 @@ model LeadSequenceState {
   lead            Lead           @relation(fields: [leadId], references: [id])
   sequenceId      String
   sequence        Sequence       @relation(fields: [sequenceId], references: [id])
-  currentStepId   String?        // Which step is the lead currently on or just finished
-  status          String         @default("ENROLLED") // ENROLLED, FINISHED, STOPPED_REPLY, PAUSED
+  currentStepId   String?        
+  status          String         @default("ENROLLED") 
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 
@@ -107,8 +127,8 @@ model EmailJob {
   lead            Lead           @relation(fields: [leadId], references: [id])
   sequenceStepId  String
   sequenceStep    SequenceStep   @relation(fields: [sequenceStepId], references: [id])
-  scheduledAt     DateTime       // UTC timestamp for when this should be sent
-  status          String         @default("QUEUED") // QUEUED, PROCESSING, SENT, FAILED, CANCELLED
+  scheduledAt     DateTime       
+  status          String         @default("QUEUED") 
   providerMessageId String?
   sentAt          DateTime?
   createdAt       DateTime       @default(now())
@@ -119,7 +139,7 @@ model Event {
   id              String       @id @default(uuid())
   emailJobId      String
   emailJob        EmailJob     @relation(fields: [emailJobId], references: [id])
-  type            String       // OPEN, REPLY, CLICK, BOUNCE
+  type            String       
   timestamp       DateTime     @default(now())
   metadata        Json?
 }
@@ -129,7 +149,7 @@ model SuppressionList {
   organizationId  String
   organization    Organization @relation(fields: [organizationId], references: [id])
   email           String
-  reason          String       // UNSUBSCRIBE, BOUNCE, MANUAL
+  reason          String       
   createdAt       DateTime     @default(now())
   
   @@unique([organizationId, email])
