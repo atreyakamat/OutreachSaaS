@@ -10,6 +10,7 @@ import sequenceRoutes from './routes/sequence.routes.js';
 import eventRoutes from './routes/event.routes.js';
 import companyRoutes from './routes/company.routes.js';
 import pipelineRoutes from './routes/pipeline.routes.js';
+import networkRoutes from './routes/network.routes.js';
 
 dotenv.config();
 
@@ -33,6 +34,7 @@ app.use('/api/sequences', sequenceRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/companies', companyRoutes);
 app.use('/api/pipeline', pipelineRoutes);
+app.use('/api/network', networkRoutes);
 
 app.listen(PORT, () => {
   console.log(`Backend server is running on http://localhost:${PORT}`);

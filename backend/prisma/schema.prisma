@@ -15,6 +15,7 @@ model Organization {
   users           User[]
   companies       Company[]
   discovered      DiscoveredCompany[]
+  universities    University[]
   sequences       Sequence[]
   campaigns       OutreachCampaign[]
   suppressionList SuppressionList[]
@@ -50,8 +51,58 @@ model Company {
   status          String         @default("IDENTIFIED") // IDENTIFIED, ENRICHED, READY
   createdAt       DateTime       @default(now())
   contacts        Contact[]
+  opportunities   Opportunity[]
   pipelineEntries OutreachPipeline[]
   activityLogs    ActivityLog[]
+}
+
+model University {
+  id              String       @id @default(uuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  name            String
+  city            String?
+  state           String?
+  country         String?
+  website         String?
+  createdAt       DateTime     @default(now())
+  colleges        College[]
+}
+
+model College {
+  id              String       @id @default(uuid())
+  name            String
+  universityId    String
+  university      University   @relation(fields: [universityId], references: [id])
+  city            String?
+  state           String?
+  website         String?
+  createdAt       DateTime     @default(now())
+  students        Student[]
+}
+
+model Student {
+  id              String       @id @default(uuid())
+  name            String
+  collegeId       String
+  college         College      @relation(fields: [collegeId], references: [id])
+  degree          String?
+  graduationYear  Int?
+  skills          Json?        // Array of strings
+  portfolioLink   String?
+  createdAt       DateTime     @default(now())
+}
+
+model Opportunity {
+  id              String       @id @default(uuid())
+  companyId       String
+  company         Company      @relation(fields: [companyId], references: [id])
+  title           String
+  description     String?
+  requiredSkills  Json?        // Array of strings
+  location        String?
+  type            String       @default("INTERNSHIP") // INTERNSHIP, FULL_TIME
+  createdAt       DateTime     @default(now())
 }
 
 model DiscoveredCompany {
@@ -82,7 +133,7 @@ model Contact {
   phone           String?
   linkedinUrl     String?
   timezone        String?        @default("UTC")
-  priorityScore   Int            @default(0) // Higher = more important
+  priorityScore   Int            @default(0)
   isPrimary       Boolean        @default(false)
   createdAt       DateTime       @default(now())
   pipelineEntries OutreachPipeline[]
@@ -97,10 +148,10 @@ model OutreachPipeline {
   company         Company        @relation(fields: [companyId], references: [id])
   contactId       String?
   contact         Contact?       @relation(fields: [contactId], references: [id])
-  stage           String         @default("discovered") // discovered, contact identified, message sent, replied, demo scheduled, partner onboarded
+  stage           String         @default("discovered") 
   lastContacted   DateTime?
   nextFollowup    DateTime?
-  status          String         @default("active") // active, paused, closed
+  status          String         @default("active") 
   notes           String?
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
@@ -121,7 +172,7 @@ model MessageTemplate {
   campaign        OutreachCampaign @relation(fields: [campaignId], references: [id])
   name            String
   subject         String
-  body            String           // Supports {{company_name}}, {{contact_name}}, {{industry}}
+  body            String           
   createdAt       DateTime         @default(now())
 }
 
