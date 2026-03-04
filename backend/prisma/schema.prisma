@@ -13,7 +13,7 @@ model Organization {
   name            String
   createdAt       DateTime         @default(now())
   users           User[]
-  leads           Lead[]
+  companies       Company[]
   sequences       Sequence[]
   suppressionList SuppressionList[]
   settings        Json?            // For rate limits, default sender info
@@ -29,18 +29,36 @@ model User {
   createdAt       DateTime     @default(now())
 }
 
-model Lead {
+model Company {
   id              String         @id @default(uuid())
   organizationId  String
   organization    Organization   @relation(fields: [organizationId], references: [id])
-  companyName     String
-  domain          String
-  country         String
-  city            String
-  timezone        String         // IANA Timezone string (e.g., America/New_York)
+  name            String
+  domain          String?
+  industry        String?
+  city            String?
+  country         String?
+  sizeRange       String?        // e.g. 10-300
+  description     String?
+  hiringSignal    String?
+  score           Int            @default(0)
+  source          String?        // LinkedIn, Startup directory, etc.
+  status          String         @default("IDENTIFIED") // IDENTIFIED, ENRICHED, READY
+  createdAt       DateTime       @default(now())
+  leads           Lead[]
+}
+
+model Lead {
+  id              String         @id @default(uuid())
+  companyId       String
+  company         Company        @relation(fields: [companyId], references: [id])
   contactName     String
+  role            String?        // Founder, HR, Talent Acquisition
   email           String
+  linkedinProfile String?
+  timezone        String?        // IANA Timezone string (e.g., America/New_York)
   status          String         @default("ACTIVE") // ACTIVE, UNSUBSCRIBED, BOUNCED, REPLIED
+  pipelineStatus  String         @default("IDENTIFIED") // IDENTIFIED, FOUND, CONTACTED, REPLIED, DEMO, ONBOARDED
   createdAt       DateTime       @default(now())
   sequenceStates  LeadSequenceState[]
   emailJobs       EmailJob[]

@@ -8,40 +8,39 @@ router.get('/', authMiddleware, async (req: any, res: Response) => {
   const organizationId = req.user.organizationId;
 
   try {
-    const [leadsCount, activeSequencesCount, emailsSentCount, pendingEmailsCount] = await Promise.all([
-      prisma.lead.count({ where: { organizationId } }),
+    const [companiesCount, leadsCount, activeSequencesCount, emailsSentCount] = await Promise.all([
+      prisma.company.count({ where: { organizationId } }),
+      prisma.lead.count({ where: { company: { organizationId } } }),
       prisma.sequence.count({ where: { organizationId, status: 'ACTIVE' } }),
-      prisma.emailJob.count({ where: { organizationId, status: 'SENT' } }),
-      prisma.emailJob.count({ where: { organizationId, status: 'QUEUED' } }),
+      prisma.emailJob.count({ where: { lead: { company: { organizationId } }, status: 'SENT' } }),
     ]);
 
-    // Simple timezone distribution for the chart
-    const tzDistribution = await prisma.lead.groupBy({
-      by: ['timezone'],
-      where: { organizationId },
-      _count: true,
+    // High score companies
+    const highValueCompanies = await prisma.company.findMany({
+      where: { organizationId, score: { gte: 5 } },
+      orderBy: { score: 'desc' },
+      take: 5,
     });
 
-    // Recent activity (latest 5 email jobs)
-    const recentActivity = await prisma.emailJob.findMany({
-      where: { organizationId },
-      include: { lead: true, sequenceStep: { include: { sequence: true } } },
-      orderBy: { createdAt: 'desc' },
-      take: 5,
+    // Pipeline Distribution
+    const pipelineDistribution = await prisma.lead.groupBy({
+      by: ['pipelineStatus'],
+      where: { company: { organizationId } },
+      _count: true,
     });
 
     res.json({
       stats: {
+        companies: companiesCount,
         leads: leadsCount,
         activeSequences: activeSequencesCount,
         emailsSent: emailsSentCount,
-        pendingEmails: pendingEmailsCount,
       },
-      tzDistribution: tzDistribution.map(item => ({
-        timezone: item.timezone,
+      highValueCompanies,
+      pipelineDistribution: pipelineDistribution.map(item => ({
+        stage: item.pipelineStatus,
         count: item._count,
       })),
-      recentActivity,
     });
   } catch (error: any) {
     res.status(500).json({ message: 'Error fetching stats', error: error.message });

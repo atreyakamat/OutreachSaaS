@@ -19,6 +19,9 @@ const Navbar = () => {
           <Link href="/dashboard" className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-blue-600">
             <LayoutDashboard size={18} /> Dashboard
           </Link>
+          <Link href="/discovery" className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-blue-600">
+            <Users size={18} /> Discovery
+          </Link>
           <Link href="/leads" className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-blue-600">
             <Users size={18} /> Leads
           </Link>
