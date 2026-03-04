@@ -89,3 +89,37 @@ export const getFollowupsDue = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: 'Error fetching followups', error: error.message });
   }
 };
+
+export const getActivityLogs = async (req: AuthRequest, res: Response) => {
+  const organizationId = req.user?.organizationId;
+
+  try {
+    const logs = await prisma.activityLog.findMany({
+      where: { company: { organizationId } },
+      include: { company: true, contact: true },
+      orderBy: { timestamp: 'desc' },
+      take: 50,
+    });
+    res.json(logs);
+  } catch (error: any) {
+    res.status(500).json({ message: 'Error fetching activity logs', error: error.message });
+  }
+};
+
+export const getFollowups = async (req: AuthRequest, res: Response) => {
+  const organizationId = req.user?.organizationId;
+
+  try {
+    const followups = await prisma.outreachPipeline.findMany({
+      where: {
+        company: { organizationId },
+        nextFollowup: { not: null },
+      },
+      include: { company: true, contact: true },
+      orderBy: { nextFollowup: 'asc' },
+    });
+    res.json(followups);
+  } catch (error: any) {
+    res.status(500).json({ message: 'Error fetching follow-ups', error: error.message });
+  }
+};

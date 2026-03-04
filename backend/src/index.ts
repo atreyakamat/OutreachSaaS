@@ -36,6 +36,12 @@ app.use('/api/companies', companyRoutes);
 app.use('/api/pipeline', pipelineRoutes);
 app.use('/api/network', networkRoutes);
 
+// Error handling middleware
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error('SERVER ERROR:', err.stack);
+  res.status(500).json({ message: 'Internal Server Error', error: err.message });
+});
+
 app.listen(PORT, () => {
   console.log(`Backend server is running on http://localhost:${PORT}`);
 });

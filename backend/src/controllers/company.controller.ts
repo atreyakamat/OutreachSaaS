@@ -84,7 +84,7 @@ export const getCompanies = async (req: AuthRequest, res: Response) => {
 };
 
 export const getCompanyById = async (req: AuthRequest, res: Response) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   try {
     const company = await prisma.company.findUnique({
       where: { id },
@@ -103,5 +103,20 @@ export const getCompanyById = async (req: AuthRequest, res: Response) => {
     res.json(company);
   } catch (error: any) {
     res.status(500).json({ message: 'Error fetching company', error: error.message });
+  }
+};
+
+export const updateCompanyStatus = async (req: AuthRequest, res: Response) => {
+  const id = req.params.id as string;
+  const { status } = req.body;
+
+  try {
+    const company = await prisma.company.update({
+      where: { id },
+      data: { status },
+    });
+    res.json(company);
+  } catch (error: any) {
+    res.status(500).json({ message: 'Error updating status', error: error.message });
   }
 };

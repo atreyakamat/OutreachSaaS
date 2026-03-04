@@ -72,7 +72,7 @@ export const getStudents = async (req: AuthRequest, res: Response) => {
       where: {
         ...(collegeId && { collegeId: collegeId as string }),
         ...(universityId && { college: { universityId: universityId as string } }),
-        ...(skill && { skills: { array_contains: skill } }),
+        ...(skill && { skills: { contains: skill as string } }),
         college: { university: { organizationId } }
       },
       include: { college: { include: { university: true } } }

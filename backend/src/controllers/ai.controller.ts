@@ -151,3 +151,24 @@ export const approveDiscoveredCompany = async (req: AuthRequest, res: Response) 
     res.status(500).json({ message: 'Approval failed', error: error.message });
   }
 };
+
+export const bulkSaveCompanies = async (req: AuthRequest, res: Response) => {
+  const { companies } = req.body;
+  const organizationId = req.user?.organizationId;
+
+  if (!organizationId) return res.status(401).json({ message: 'Unauthorized' });
+
+  try {
+    for (const c of companies) {
+      await prisma.discoveredCompany.upsert({
+        where: { organizationId_domain: { organizationId, domain: c.domain || `${c.companyName}.com` } },
+        update: { ...c, organizationId },
+        create: { ...c, organizationId }
+      });
+    }
+    
+    res.status(201).json({ message: 'Companies synced to review queue' });
+  } catch (error: any) {
+    res.status(500).json({ message: 'Failed to save companies', error: error.message });
+  }
+};

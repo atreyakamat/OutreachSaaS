@@ -5,7 +5,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
 }
 
 model Organization {
@@ -19,7 +19,7 @@ model Organization {
   sequences       Sequence[]
   campaigns       OutreachCampaign[]
   suppressionList SuppressionList[]
-  settings        Json?            
+  settings        String?            
 }
 
 model User {
@@ -88,7 +88,7 @@ model Student {
   college         College      @relation(fields: [collegeId], references: [id])
   degree          String?
   graduationYear  Int?
-  skills          Json?        // Array of strings
+  skills          String?        // Store as stringified JSON or CSV for SQLite
   portfolioLink   String?
   createdAt       DateTime     @default(now())
 }
@@ -99,7 +99,7 @@ model Opportunity {
   company         Company      @relation(fields: [companyId], references: [id])
   title           String
   description     String?
-  requiredSkills  Json?        // Array of strings
+  requiredSkills  String?        // Store as stringified JSON or CSV for SQLite
   location        String?
   type            String       @default("INTERNSHIP") // INTERNSHIP, FULL_TIME
   createdAt       DateTime     @default(now())
@@ -116,7 +116,7 @@ model DiscoveredCompany {
   city            String?
   country         String?
   source          String?
-  rawMetadata     Json?
+  rawMetadata     String?
   status          String         @default("PENDING") // PENDING, APPROVED, REJECTED
   createdAt       DateTime       @default(now())
 
@@ -244,7 +244,7 @@ model Event {
   emailJob        EmailJob     @relation(fields: [emailJobId], references: [id])
   type            String       
   timestamp       DateTime     @default(now())
-  metadata        Json?
+  metadata        String?
 }
 
 model SuppressionList {

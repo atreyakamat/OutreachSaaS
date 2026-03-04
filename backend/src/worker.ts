@@ -6,8 +6,11 @@ import { addEmailJob } from './services/queue.service.js';
 import { enrichCompany } from './services/enrichment.service.js';
 import moment from 'moment-timezone';
 
-const REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
-const connection = new IORedis(REDIS_URL, { maxRetriesPerRequest: null });
+const connection = {
+  host: '127.0.0.1',
+  port: 6379,
+  maxRetriesPerRequest: null,
+};
 
 // Main Email and Engine Worker
 const emailWorker = new Worker(
@@ -66,7 +69,7 @@ const emailWorker = new Worker(
             to: emailJob.contact.email,
             subjectTemplate: nextStep.subjectTemplate,
             bodyTemplate: nextStep.bodyTemplate,
-            leadData: { contactName: emailJob.contact.name, companyName: 'N/A' }, // Fetch company name if needed
+            leadData: { contactName: emailJob.contact.name, companyName: 'N/A' }, 
           }, Math.max(0, scheduledAt.getTime() - Date.now()));
 
           await prisma.leadSequenceState.update({
@@ -100,10 +103,9 @@ const automationWorker = new Worker(
     
     if (job.name === 'check-reminders') {
       console.log('Checking for follow-up reminders...');
-      // Logic to send notifications or mark as overdue
     }
   },
   { connection }
 );
 
-console.log('Outreach Engine Workers are running...');
+console.log('Outreach Engine Workers are initialized.');

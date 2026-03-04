@@ -81,7 +81,7 @@ export const getContacts = async (req: AuthRequest, res: Response) => {
     const contacts = await prisma.contact.findMany({
       where: { 
         company: { organizationId },
-        ...(role && { role: { contains: role as string, mode: 'insensitive' } }),
+        ...(role && { role: { contains: role as string } }),
         ...(companyId && { companyId: companyId as string }),
       },
       include: { company: true },
@@ -98,7 +98,7 @@ export const getContacts = async (req: AuthRequest, res: Response) => {
 };
 
 export const setPrimaryContact = async (req: AuthRequest, res: Response) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   try {
     const contact = await prisma.contact.findUnique({ where: { id } });
     if (!contact) return res.status(404).json({ message: 'Not found' });
