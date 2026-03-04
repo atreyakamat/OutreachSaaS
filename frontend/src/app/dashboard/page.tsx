@@ -14,7 +14,10 @@ import {
   Bell, 
   Activity,
   ChevronRight,
-  ArrowRight
+  ArrowRight,
+  Zap,
+  Globe,
+  PieChart
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -45,125 +48,188 @@ export default function DashboardPage() {
     fetchDashboardData();
   }, []);
 
-  if (loading) return <div className="p-8 text-center text-gray-500">Loading Intelligence...</div>;
+  if (loading) return <div className="p-8 text-center text-gray-500">Initializing Engine Intelligence...</div>;
 
   const stats = [
-    { label: 'Total Companies', value: dashboardData?.stats.companies || 0, icon: Building2, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: 'Companies Discovered', value: dashboardData?.stats.companies || 0, icon: Building2, color: 'text-blue-600', bg: 'bg-blue-50' },
     { label: 'Decision Makers', value: dashboardData?.stats.leads || 0, icon: Users, color: 'text-purple-600', bg: 'bg-purple-50' },
-    { label: 'Active Sequences', value: dashboardData?.stats.activeSequences || 0, icon: Target, color: 'text-orange-600', bg: 'bg-orange-50' },
-    { label: 'Messages Sent', value: dashboardData?.stats.emailsSent || 0, icon: Mail, color: 'text-green-600', bg: 'bg-green-50' },
+    { label: 'Active Sequences', value: dashboardData?.stats.activeSequences || 0, icon: Zap, color: 'text-orange-600', bg: 'bg-orange-50' },
+    { label: 'Partners Onboarded', value: dashboardData?.stats.onboarded || 0, icon: Star, color: 'text-green-600', bg: 'bg-green-50' },
   ];
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
-      <div className="mb-8 flex justify-between items-end">
+      {/* Header */}
+      <div className="mb-12 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div>
-          <h1 className="text-2xl font-black text-gray-900 tracking-tight flex items-center gap-3">
-            Employer Acquisition Command Center
+          <div className="flex items-center gap-2 text-blue-600 font-black text-[10px] uppercase tracking-[0.3em] mb-3">
+             <div className="w-2 h-2 rounded-full bg-blue-600 animate-ping"></div>
+             Engine Live
+          </div>
+          <h1 className="text-5xl font-black text-gray-900 tracking-tighter">
+            Acquisition <span className="text-blue-600">Command</span>
           </h1>
-          <p className="text-sm text-gray-500 font-medium">Acquiring partners for SOLO ecosystem.</p>
+          <p className="text-gray-500 font-medium mt-2">Welcome back, {user?.email.split('@')[0]}. Here is your employer intelligence.</p>
         </div>
-        <div className="flex gap-2">
-          <Link href="/discovery" className="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg shadow-blue-100 flex items-center gap-2 hover:bg-blue-700 transition">
-            Start Discovery <ArrowRight size={14} />
+        <div className="flex gap-3">
+          <Link href="/discovery" className="group bg-blue-600 text-white px-6 py-4 rounded-[24px] font-black text-sm shadow-xl shadow-blue-100 flex items-center gap-3 hover:bg-blue-700 transition-all hover:scale-105 active:scale-95">
+            Discover Companies <Zap size={18} fill="currentColor" className="group-hover:animate-bounce" />
           </Link>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
         {stats.map((stat) => (
-          <div key={stat.label} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 group">
-            <div className="flex items-center gap-4">
-              <div className={`p-3 rounded-xl ${stat.bg} ${stat.color} group-hover:scale-110 transition`}>
-                <stat.icon size={24} />
+          <div key={stat.label} className="bg-white p-8 rounded-[40px] shadow-sm border border-gray-100 group hover:border-blue-200 transition-all duration-500">
+            <div className="flex flex-col gap-6">
+              <div className={`w-14 h-14 rounded-2xl ${stat.bg} ${stat.color} flex items-center justify-center group-hover:rotate-12 transition-transform duration-500 shadow-sm`}>
+                <stat.icon size={28} />
               </div>
               <div>
-                <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">{stat.label}</p>
-                <p className="text-3xl font-black text-gray-900">{stat.value.toLocaleString()}</p>
+                <p className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">{stat.label}</p>
+                <p className="text-4xl font-black text-gray-900 tracking-tighter">{stat.value.toLocaleString()}</p>
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Follow-up Reminders */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
-          <div className="p-5 border-b border-gray-50 bg-gray-50/50 flex items-center justify-between">
-            <h2 className="text-sm font-black text-gray-800 flex items-center gap-2 uppercase tracking-widest">
-              <Bell size={18} className="text-orange-500" /> Follow-ups Due
-            </h2>
-            <span className="bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full text-[10px] font-black">
-              {followups.length} Tasks
-            </span>
-          </div>
-          <div className="flex-1 overflow-auto max-h-[400px] divide-y divide-gray-50">
-            {followups.length > 0 ? (
-              followups.map((lead: any) => (
-                <div key={lead.id} className="p-4 hover:bg-gray-50/50 transition flex items-center justify-between group">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500">
-                      {lead.contactName[0]}
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-gray-900">{lead.contactName}</p>
-                      <p className="text-[10px] text-gray-400 font-bold uppercase">{lead.company.name}</p>
-                    </div>
-                  </div>
-                  <Link href="/pipeline" className="opacity-0 group-hover:opacity-100 p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition">
-                    <ChevronRight size={16} />
-                  </Link>
-                </div>
-              ))
-            ) : (
-              <div className="p-12 text-center text-gray-400">
-                <Clock size={32} className="mx-auto mb-3 opacity-20" />
-                <p className="text-xs font-bold uppercase tracking-wider">All caught up!</p>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        {/* Main Content Area */}
+        <div className="lg:col-span-2 space-y-12">
+           {/* Pipeline Performance */}
+           <div className="bg-white p-10 rounded-[48px] shadow-sm border border-gray-100 relative overflow-hidden">
+              <div className="flex items-center justify-between mb-10 relative z-10">
+                 <div>
+                    <h2 className="text-xl font-black text-gray-900 flex items-center gap-3">
+                       <TrendingUp className="text-blue-600" /> Pipeline Performance
+                    </h2>
+                    <p className="text-sm text-gray-400 font-medium">Conversion flow across acquisition stages.</p>
+                 </div>
+                 <Link href="/pipeline" className="text-xs font-black text-blue-600 uppercase tracking-widest hover:translate-x-2 transition-transform">
+                    Full Pipeline →
+                 </Link>
               </div>
-            )}
-          </div>
+              
+              <div className="space-y-8 relative z-10">
+                 {dashboardData?.pipelineDistribution.map((item: any) => (
+                   <div key={item.stage} className="group">
+                      <div className="flex justify-between items-end mb-3">
+                         <span className="text-[11px] font-black uppercase tracking-widest text-gray-500 group-hover:text-blue-600 transition-colors">
+                            {item.stage}
+                         </span>
+                         <span className="text-sm font-black text-gray-900">{item.count}</span>
+                      </div>
+                      <div className="w-full bg-gray-50 rounded-full h-4 overflow-hidden border border-gray-100 p-1">
+                         <div 
+                           className="bg-gradient-to-r from-blue-500 to-indigo-600 h-full rounded-full shadow-sm transition-all duration-1000 group-hover:shadow-blue-200" 
+                           style={{ width: `${(item.count / (dashboardData.stats.leads || 1)) * 100}%` }}
+                         />
+                      </div>
+                   </div>
+                 ))}
+              </div>
+
+              {/* BG Accent */}
+              <PieChart size={200} className="absolute -bottom-20 -right-20 text-blue-50 opacity-50 rotate-12" />
+           </div>
+
+           {/* Activity Log */}
+           <div className="bg-white p-10 rounded-[48px] shadow-sm border border-gray-100">
+              <h2 className="text-xl font-black text-gray-900 flex items-center gap-3 mb-8">
+                 <Activity className="text-purple-600" /> Live Feed
+              </h2>
+              <div className="space-y-8">
+                 {activityLogs.slice(0, 5).map((log: any) => (
+                   <div key={log.id} className="flex gap-6 group">
+                      <div className="relative">
+                         <div className="w-12 h-12 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-xs font-black text-gray-400 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+                            {log.company.companyName[0]}
+                         </div>
+                         <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white border border-gray-100 flex items-center justify-center shadow-sm">
+                            <Zap size={10} className="text-blue-600" fill="currentColor" />
+                         </div>
+                      </div>
+                      <div className="flex-1 border-b border-gray-50 pb-6 group-last:border-none">
+                         <div className="flex justify-between items-start mb-1">
+                            <p className="text-sm font-black text-gray-900">
+                               {log.action} <span className="text-gray-400 font-medium mx-1">at</span> {log.company.name}
+                            </p>
+                            <span className="text-[10px] font-bold text-gray-300 uppercase">{new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                         </div>
+                         <p className="text-xs text-gray-500 font-medium leading-relaxed">{log.details}</p>
+                      </div>
+                   </div>
+                 ))}
+              </div>
+           </div>
         </div>
 
-        {/* Activity Log */}
-        <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="p-5 border-b border-gray-50 bg-gray-50/50">
-            <h2 className="text-sm font-black text-gray-800 flex items-center gap-2 uppercase tracking-widest">
-              <Activity size={18} className="text-blue-500" /> Recent Activity
-            </h2>
-          </div>
-          <div className="divide-y divide-gray-50 max-h-[400px] overflow-auto">
-            {activityLogs.length > 0 ? (
-              activityLogs.map((log: any) => (
-                <div key={log.id} className="p-5 hover:bg-gray-50/30 transition">
-                  <div className="flex items-start gap-4">
-                    <div className="mt-1">
-                      <div className="w-2 h-2 rounded-full bg-blue-500 ring-4 ring-blue-50"></div>
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-bold text-gray-900">
-                        {log.action} <span className="text-gray-400 font-medium">for</span> {log.company.name}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1">{log.details}</p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <span className="text-[10px] font-black text-gray-400 uppercase">
-                          {new Date(log.timestamp).toLocaleString()}
-                        </span>
-                        {log.lead && (
-                          <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded uppercase tracking-widest">
-                            {log.lead.contactName}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="p-12 text-center text-gray-400">
-                <p className="text-sm font-medium">No activity recorded yet.</p>
+        {/* Sidebar Area */}
+        <div className="space-y-12">
+           {/* High Value Targets */}
+           <div className="bg-gradient-to-br from-gray-900 to-gray-800 p-10 rounded-[48px] shadow-2xl text-white relative overflow-hidden">
+              <div className="relative z-10">
+                 <h2 className="text-lg font-black flex items-center gap-2 mb-8 uppercase tracking-widest">
+                    <Star size={20} className="text-orange-400" fill="currentColor" /> Priority Targets
+                 </h2>
+                 <div className="space-y-6">
+                    {dashboardData?.highValueCompanies.map((c: any) => (
+                      <Link href={`/companies/${c.id}`} key={c.id} className="block group">
+                         <div className="flex justify-between items-center">
+                            <div>
+                               <p className="text-sm font-black group-hover:text-blue-400 transition-colors">{c.companyName}</p>
+                               <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{c.industry}</p>
+                            </div>
+                            <div className="text-right">
+                               <p className="text-xs font-black text-orange-400">{c.score} pts</p>
+                               <p className="text-[9px] font-bold text-gray-600 uppercase">{c.city}</p>
+                            </div>
+                         </div>
+                      </Link>
+                    ))}
+                 </div>
+                 <Link href="/companies" className="mt-10 w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-white/5 border border-white/10 text-xs font-black uppercase tracking-[0.2em] hover:bg-white/10 transition">
+                    View All Targets <ArrowRight size={14} />
+                 </Link>
               </div>
-            )}
-          </div>
+              <Globe size={300} className="absolute -bottom-20 -left-20 text-white opacity-[0.03] animate-spin-slow pointer-events-none" />
+           </div>
+
+           {/* Follow-up Section */}
+           <div className="bg-orange-50 p-10 rounded-[48px] border border-orange-100 shadow-sm shadow-orange-50">
+              <div className="flex items-center justify-between mb-8">
+                 <h2 className="text-lg font-black text-orange-900 flex items-center gap-2">
+                    <Bell size={20} /> Tasks Due
+                 </h2>
+                 <span className="bg-orange-200 text-orange-900 px-3 py-1 rounded-full text-xs font-black">
+                    {followups.length}
+                 </span>
+              </div>
+              <div className="space-y-4">
+                 {followups.slice(0, 3).map((f: any) => (
+                   <div key={f.id} className="bg-white/60 p-4 rounded-2xl border border-white flex items-center justify-between group cursor-pointer hover:bg-white transition-all">
+                      <div className="flex items-center gap-3">
+                         <div className="w-8 h-8 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center text-[10px] font-black">
+                            {f.company.companyName[0]}
+                         </div>
+                         <div>
+                            <p className="text-xs font-black text-gray-900">{f.company.companyName}</p>
+                            <p className="text-[9px] font-bold text-orange-500 uppercase">Follow-up</p>
+                         </div>
+                      </div>
+                      <ChevronRight size={16} className="text-orange-200 group-hover:text-orange-500 transition-colors" />
+                   </div>
+                 ))}
+                 {followups.length > 3 && (
+                   <p className="text-center text-[10px] font-black text-orange-400 uppercase tracking-widest">+{followups.length - 3} more reminders</p>
+                 )}
+                 <Link href="/reminders" className="mt-6 w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-orange-600 text-white text-xs font-black uppercase tracking-[0.2em] hover:bg-orange-700 transition shadow-lg shadow-orange-100">
+                    Open Tasks
+                 </Link>
+              </div>
+           </div>
         </div>
       </div>
     </div>

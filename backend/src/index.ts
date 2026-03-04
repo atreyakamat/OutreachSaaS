@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes.js';
-import leadRoutes from './routes/lead.routes.js';
+import contactRoutes from './routes/contact.routes.js';
 import campaignRoutes from './routes/campaign.routes.js';
 import statsRoutes from './routes/stats.routes.js';
 import aiRoutes from './routes/ai.routes.js';
@@ -25,7 +25,7 @@ app.get('/health', (req, res) => {
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/leads', leadRoutes);
+app.use('/api/contacts', contactRoutes);
 app.use('/api/campaigns', campaignRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/ai', aiRoutes);

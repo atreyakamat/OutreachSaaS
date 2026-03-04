@@ -8,11 +8,12 @@ router.get('/', authMiddleware, async (req: any, res: Response) => {
   const organizationId = req.user.organizationId;
 
   try {
-    const [companiesCount, leadsCount, activeSequencesCount, emailsSentCount] = await Promise.all([
+    const [companiesCount, leadsCount, activeSequencesCount, emailsSentCount, onboardedCount] = await Promise.all([
       prisma.company.count({ where: { organizationId } }),
-      prisma.lead.count({ where: { company: { organizationId } } }),
+      prisma.contact.count({ where: { company: { organizationId } } }),
       prisma.sequence.count({ where: { organizationId, status: 'ACTIVE' } }),
-      prisma.emailJob.count({ where: { lead: { company: { organizationId } }, status: 'SENT' } }),
+      prisma.emailJob.count({ where: { contact: { company: { organizationId } } }, status: 'SENT' }),
+      prisma.outreachPipeline.count({ where: { company: { organizationId }, stage: 'partner onboarded' } }),
     ]);
 
     // High score companies
@@ -23,8 +24,8 @@ router.get('/', authMiddleware, async (req: any, res: Response) => {
     });
 
     // Pipeline Distribution
-    const pipelineDistribution = await prisma.lead.groupBy({
-      by: ['pipelineStatus'],
+    const pipelineDistribution = await prisma.outreachPipeline.groupBy({
+      by: ['stage'],
       where: { company: { organizationId } },
       _count: true,
     });
@@ -35,10 +36,11 @@ router.get('/', authMiddleware, async (req: any, res: Response) => {
         leads: leadsCount,
         activeSequences: activeSequencesCount,
         emailsSent: emailsSentCount,
+        onboarded: onboardedCount,
       },
       highValueCompanies,
       pipelineDistribution: pipelineDistribution.map(item => ({
-        stage: item.pipelineStatus,
+        stage: item.stage,
         count: item._count,
       })),
     });

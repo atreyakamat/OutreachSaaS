@@ -16,7 +16,7 @@ model Organization {
   companies       Company[]
   sequences       Sequence[]
   suppressionList SuppressionList[]
-  settings        Json?            // For rate limits, default sender info
+  settings        Json?            
 }
 
 model User {
@@ -33,53 +33,64 @@ model Company {
   id              String         @id @default(uuid())
   organizationId  String
   organization    Organization   @relation(fields: [organizationId], references: [id])
-  name            String
-  domain          String?
+  companyName     String
+  domain          String?        @unique
   industry        String?
   city            String?
   country         String?
-  sizeRange       String?        
+  companySize     String?        
+  source          String?        
+  website         String?
+  linkedinUrl     String?
+  score           Int            @default(0)
   description     String?
   hiringSignal    String?
-  score           Int            @default(0)
-  source          String?        
   status          String         @default("IDENTIFIED") // IDENTIFIED, ENRICHED, READY
   createdAt       DateTime       @default(now())
-  contacts        Lead[]
+  contacts        Contact[]
+  pipelineEntries OutreachPipeline[]
   activityLogs    ActivityLog[]
 }
 
-model Lead {
+model Contact {
   id              String         @id @default(uuid())
   companyId       String
   company         Company        @relation(fields: [companyId], references: [id])
-  contactName     String
+  name            String
   role            String?        
-  email           String
+  email           String         @unique
   phone           String?
   linkedinUrl     String?
-  timezone        String?        
-  status          String         @default("ACTIVE") // ACTIVE, UNSUBSCRIBED, BOUNCED, REPLIED
-  
-  // Pipeline Tracking
-  pipelineStage   String         @default("discovered") // discovered, contact identified, message sent, replied, demo scheduled, partner onboarded
-  lastContacted   DateTime?
-  nextFollowup    DateTime?
-  notes           String?
-  
+  timezone        String?        @default("UTC")
   createdAt       DateTime       @default(now())
+  pipelineEntries OutreachPipeline[]
   sequenceStates  LeadSequenceState[]
   emailJobs       EmailJob[]
   activityLogs    ActivityLog[]
+}
+
+model OutreachPipeline {
+  id              String         @id @default(uuid())
+  companyId       String
+  company         Company        @relation(fields: [companyId], references: [id])
+  contactId       String?
+  contact         Contact?       @relation(fields: [contactId], references: [id])
+  stage           String         @default("discovered") // discovered, contact identified, message sent, replied, demo scheduled, partner onboarded
+  lastContacted   DateTime?
+  nextFollowup    DateTime?
+  status          String         @default("active") // active, paused, closed
+  notes           String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 }
 
 model ActivityLog {
   id              String       @id @default(uuid())
   companyId       String
   company         Company      @relation(fields: [companyId], references: [id])
-  leadId          String?
-  lead            Lead?        @relation(fields: [leadId], references: [id])
-  action          String       // e.g. "Message Sent", "Status Updated", "Note Added"
+  contactId       String?
+  contact         Contact?     @relation(fields: [contactId], references: [id])
+  action          String       
   details         String?
   timestamp       DateTime     @default(now())
 }
@@ -108,8 +119,8 @@ model SequenceStep {
 
 model LeadSequenceState {
   id              String         @id @default(uuid())
-  leadId          String
-  lead            Lead           @relation(fields: [leadId], references: [id])
+  contactId       String
+  contact         Contact        @relation(fields: [contactId], references: [id])
   sequenceId      String
   sequence        Sequence       @relation(fields: [sequenceId], references: [id])
   currentStepId   String?        
@@ -117,14 +128,14 @@ model LeadSequenceState {
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 
-  @@unique([leadId, sequenceId])
+  @@unique([contactId, sequenceId])
 }
 
 model EmailJob {
   id              String         @id @default(uuid())
   organizationId  String
-  leadId          String
-  lead            Lead           @relation(fields: [leadId], references: [id])
+  contactId       String
+  contact         Contact        @relation(fields: [contactId], references: [id])
   sequenceStepId  String
   sequenceStep    SequenceStep   @relation(fields: [sequenceStepId], references: [id])
   scheduledAt     DateTime       
