@@ -28,14 +28,18 @@ export const getTimezone = (country: string, city: string): string => {
   return fallbackMap[country] || 'UTC';
 };
 
-/**
- * Converts local 10 AM in a specific timezone to the next UTC timestamp.
- */
 export const getNext10AMUTC = (timezone: string): Date => {
-  const localTime = moment.tz(timezone).hour(10).minute(0).second(0).millisecond(0);
+  return getNext10AMUTCForDay(timezone, 0);
+};
+
+/**
+ * Converts local 10 AM in a specific timezone to the UTC timestamp after X relative days.
+ */
+export const getNext10AMUTCForDay = (timezone: string, waitDays: number): Date => {
+  const localTime = moment.tz(timezone).hour(10).minute(0).second(0).millisecond(0).add(waitDays, 'days');
   
-  // If 10 AM has already passed today, schedule for tomorrow
-  if (localTime.isBefore(moment.tz(timezone))) {
+  // If 10 AM has already passed today and waitDays is 0, schedule for tomorrow
+  if (waitDays === 0 && localTime.isBefore(moment.tz(timezone))) {
     localTime.add(1, 'day');
   }
 

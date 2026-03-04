@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import prisma from '../config/prisma';
+import prisma from '../config/prisma.js';
 import fs from 'fs';
 import csv from 'csv-parser';
-import { getTimezone } from '../utils/timezone';
+import { getTimezone } from '../utils/timezone.js';
 
 interface AuthRequest extends Request {
   user?: {

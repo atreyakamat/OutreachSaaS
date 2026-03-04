@@ -1,6 +1,6 @@
 import { Router, Response } from 'express';
-import { authMiddleware } from '../middlewares/auth.middleware';
-import prisma from '../config/prisma';
+import { authMiddleware } from '../middlewares/auth.middleware.js';
+import prisma from '../config/prisma.js';
 
 const router = Router();
 
@@ -8,9 +8,9 @@ router.get('/', authMiddleware, async (req: any, res: Response) => {
   const organizationId = req.user.organizationId;
 
   try {
-    const [leadsCount, activeCampaignsCount, emailsSentCount, pendingEmailsCount] = await Promise.all([
+    const [leadsCount, activeSequencesCount, emailsSentCount, pendingEmailsCount] = await Promise.all([
       prisma.lead.count({ where: { organizationId } }),
-      prisma.campaign.count({ where: { organizationId, status: 'ACTIVE' } }),
+      prisma.sequence.count({ where: { organizationId, status: 'ACTIVE' } }),
       prisma.emailJob.count({ where: { organizationId, status: 'SENT' } }),
       prisma.emailJob.count({ where: { organizationId, status: 'QUEUED' } }),
     ]);
@@ -25,7 +25,7 @@ router.get('/', authMiddleware, async (req: any, res: Response) => {
     // Recent activity (latest 5 email jobs)
     const recentActivity = await prisma.emailJob.findMany({
       where: { organizationId },
-      include: { lead: true, campaign: true },
+      include: { lead: true, sequenceStep: { include: { sequence: true } } },
       orderBy: { createdAt: 'desc' },
       take: 5,
     });
@@ -33,7 +33,7 @@ router.get('/', authMiddleware, async (req: any, res: Response) => {
     res.json({
       stats: {
         leads: leadsCount,
-        activeCampaigns: activeCampaignsCount,
+        activeSequences: activeSequencesCount,
         emailsSent: emailsSentCount,
         pendingEmails: pendingEmailsCount,
       },

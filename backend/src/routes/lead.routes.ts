@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { authMiddleware } from '../middlewares/auth.middleware';
-import { createLead, getLeads, uploadLeads } from '../controllers/lead.controller';
+import { authMiddleware } from '../middlewares/auth.middleware.js';
+import { createLead, getLeads, uploadLeads } from '../controllers/lead.controller.js';
 import multer from 'multer';
 
 const upload = multer({ dest: 'uploads/' });

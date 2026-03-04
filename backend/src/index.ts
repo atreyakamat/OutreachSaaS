@@ -1,11 +1,13 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import authRoutes from './routes/auth.routes';
-import leadRoutes from './routes/lead.routes';
-import campaignRoutes from './routes/campaign.routes';
-import statsRoutes from './routes/stats.routes';
-import aiRoutes from './routes/ai.routes';
+import authRoutes from './routes/auth.routes.js';
+import leadRoutes from './routes/lead.routes.js';
+import campaignRoutes from './routes/campaign.routes.js';
+import statsRoutes from './routes/stats.routes.js';
+import aiRoutes from './routes/ai.routes.js';
+import sequenceRoutes from './routes/sequence.routes.js';
+import eventRoutes from './routes/event.routes.js';
 
 dotenv.config();
 
@@ -25,6 +27,8 @@ app.use('/api/leads', leadRoutes);
 app.use('/api/campaigns', campaignRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/sequences', sequenceRoutes);
+app.use('/api/events', eventRoutes);
 
 app.listen(PORT, () => {
   console.log(`Backend server is running on http://localhost:${PORT}`);

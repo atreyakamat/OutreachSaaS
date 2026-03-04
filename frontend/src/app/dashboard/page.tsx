@@ -28,7 +28,7 @@ export default function DashboardPage() {
 
   const stats = [
     { label: 'Total Leads', value: dashboardData?.stats.leads || 0, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { label: 'Active Campaigns', value: dashboardData?.stats.activeCampaigns || 0, icon: Mail, color: 'text-purple-600', bg: 'bg-purple-50' },
+    { label: 'Active Sequences', value: dashboardData?.stats.activeSequences || 0, icon: Mail, color: 'text-purple-600', bg: 'bg-purple-50' },
     { label: 'Emails Sent', value: dashboardData?.stats.emailsSent || 0, icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50' },
     { label: 'Pending Dispatch', value: dashboardData?.stats.pendingEmails || 0, icon: Clock, color: 'text-orange-600', bg: 'bg-orange-50' },
   ];

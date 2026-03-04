@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import prisma from '../config/prisma';
-import { getNext10AMUTC } from '../utils/timezone';
-import { addEmailJob } from '../services/queue.service';
+import prisma from '../config/prisma.js';
+import { getNext10AMUTC } from '../utils/timezone.js';
+import { addEmailJob } from '../services/queue.service.js';
 
 interface AuthRequest extends Request {
   user?: {

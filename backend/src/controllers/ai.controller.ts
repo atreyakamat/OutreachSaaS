@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import axios from 'axios';
-import prisma from '../config/prisma';
-import { getTimezone } from '../utils/timezone';
+import prisma from '../config/prisma.js';
+import { getTimezone } from '../utils/timezone.js';
 
 const OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434/api/generate';
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'llama3';
