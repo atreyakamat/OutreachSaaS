@@ -14,7 +14,9 @@ model Organization {
   createdAt       DateTime         @default(now())
   users           User[]
   companies       Company[]
+  discovered      DiscoveredCompany[]
   sequences       Sequence[]
+  campaigns       OutreachCampaign[]
   suppressionList SuppressionList[]
   settings        Json?            
 }
@@ -52,6 +54,24 @@ model Company {
   activityLogs    ActivityLog[]
 }
 
+model DiscoveredCompany {
+  id              String         @id @default(uuid())
+  organizationId  String
+  organization    Organization   @relation(fields: [organizationId], references: [id])
+  name            String
+  domain          String?
+  website         String?
+  industry        String?
+  city            String?
+  country         String?
+  source          String?
+  rawMetadata     Json?
+  status          String         @default("PENDING") // PENDING, APPROVED, REJECTED
+  createdAt       DateTime       @default(now())
+
+  @@unique([organizationId, domain])
+}
+
 model Contact {
   id              String         @id @default(uuid())
   companyId       String
@@ -62,6 +82,8 @@ model Contact {
   phone           String?
   linkedinUrl     String?
   timezone        String?        @default("UTC")
+  priorityScore   Int            @default(0) // Higher = more important
+  isPrimary       Boolean        @default(false)
   createdAt       DateTime       @default(now())
   pipelineEntries OutreachPipeline[]
   sequenceStates  LeadSequenceState[]
@@ -82,6 +104,25 @@ model OutreachPipeline {
   notes           String?
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
+}
+
+model OutreachCampaign {
+  id              String         @id @default(uuid())
+  organizationId  String
+  organization    Organization   @relation(fields: [organizationId], references: [id])
+  name            String
+  templates       MessageTemplate[]
+  createdAt       DateTime       @default(now())
+}
+
+model MessageTemplate {
+  id              String           @id @default(uuid())
+  campaignId      String
+  campaign        OutreachCampaign @relation(fields: [campaignId], references: [id])
+  name            String
+  subject         String
+  body            String           // Supports {{company_name}}, {{contact_name}}, {{industry}}
+  createdAt       DateTime         @default(now())
 }
 
 model ActivityLog {

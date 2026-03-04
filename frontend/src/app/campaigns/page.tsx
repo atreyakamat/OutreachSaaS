@@ -2,17 +2,25 @@
 
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
-import { Plus, Play, Info } from 'lucide-react';
+import { 
+  Mail, 
+  Plus, 
+  Save, 
+  MessageSquare, 
+  Target, 
+  ChevronRight, 
+  Activity,
+  Info,
+  Layers,
+  Sparkles
+} from 'lucide-react';
+import Link from 'next/link';
 
 export default function CampaignsPage() {
-  const [campaigns, setCampaigns] = useState([]);
+  const [campaigns, setCampaigns] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  
-  // New Campaign Form
-  const [name, setName] = useState('');
-  const [subjectTemplate, setSubjectTemplate] = useState('');
-  const [bodyTemplate, setBodyTemplate] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newCampaignName, setNewCampaignName] = useState('');
 
   useEffect(() => {
     fetchCampaigns();
@@ -32,144 +40,121 @@ export default function CampaignsPage() {
   const handleCreateCampaign = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post('/campaigns', { name, subjectTemplate, bodyTemplate });
-      setName('');
-      setSubjectTemplate('');
-      setBodyTemplate('');
-      setShowModal(false);
+      await api.post('/campaigns', { name: newCampaignName });
+      setNewCampaignName('');
+      setIsModalOpen(false);
       fetchCampaigns();
     } catch (err) {
       alert('Failed to create campaign');
     }
   };
 
-  const handleStartCampaign = async (id: string) => {
-    try {
-      await api.post(`/campaigns/${id}/start`);
-      fetchCampaigns();
-      alert('Campaign started! Emails are being scheduled.');
-    } catch (err) {
-      alert('Failed to start campaign');
-    }
-  };
-
-  if (loading) return <div className="p-8 text-center">Loading campaigns...</div>;
+  if (loading) return <div className="p-8 text-center text-gray-500">Loading messaging engine...</div>;
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Campaigns</h1>
-          <p className="text-sm text-gray-500">Create and monitor your outreach campaigns</p>
+          <h1 className="text-4xl font-black text-gray-900 tracking-tight flex items-center gap-4">
+            <div className="p-3 bg-purple-600 text-white rounded-3xl shadow-xl shadow-purple-100">
+              <Mail size={32} />
+            </div>
+            Outreach Campaigns
+          </h1>
+          <p className="text-lg text-gray-500 font-medium mt-3">Design personalized messaging sequences for employer partners.</p>
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition"
+        <button 
+          onClick={() => setIsModalOpen(true)}
+          className="bg-purple-600 text-white px-8 py-4 rounded-[24px] font-black text-sm shadow-xl shadow-purple-100 flex items-center gap-3 hover:bg-purple-700 transition-all hover:scale-105 active:scale-95"
         >
-          <Plus size={18} /> New Campaign
+          New Campaign <Plus size={20} />
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {campaigns.length === 0 ? (
-          <div className="col-span-full py-12 text-center bg-white rounded-xl border border-dashed border-gray-300 text-gray-500">
-            No campaigns yet. Click "New Campaign" to start.
+          <div className="col-span-full py-40 text-center bg-white rounded-[40px] border-2 border-dashed border-gray-100 text-gray-300">
+             <Layers size={64} className="mx-auto mb-4 opacity-20" />
+             <p className="text-sm font-bold uppercase tracking-widest">No campaigns designed yet.</p>
           </div>
         ) : (
-          campaigns.map((campaign: any) => (
-            <div key={campaign.id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-lg font-bold text-gray-900">{campaign.name}</h3>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  campaign.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
-                }`}>
-                  {campaign.status}
-                </span>
-              </div>
-              <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                Subject: {campaign.subjectTemplate}
-              </p>
-              <div className="flex justify-between items-center pt-4 border-t border-gray-100">
-                <span className="text-xs text-gray-400">Created: {new Date(campaign.createdAt).toLocaleDateString()}</span>
-                {campaign.status === 'DRAFT' && (
-                  <button
-                    onClick={() => handleStartCampaign(campaign.id)}
-                    className="flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700"
+          campaigns.map((campaign) => (
+            <div key={campaign.id} className="bg-white p-8 rounded-[40px] shadow-sm border border-gray-100 hover:shadow-xl hover:shadow-purple-50 transition-all duration-500 group">
+               <div className="flex justify-between items-start mb-8">
+                  <div className="w-16 h-16 rounded-3xl bg-purple-50 text-purple-600 flex items-center justify-center font-black text-2xl group-hover:bg-purple-600 group-hover:text-white transition-all duration-500">
+                     {campaign.name[0]}
+                  </div>
+                  <div className="bg-green-50 text-green-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-green-100">
+                     Ready
+                  </div>
+               </div>
+               
+               <h3 className="text-xl font-black text-gray-900 mb-2">{campaign.name}</h3>
+               <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mb-8">{campaign.templates.length} Templates Active</p>
+
+               <div className="space-y-3 mb-10">
+                  {campaign.templates.map((t: any, i: number) => (
+                    <div key={t.id} className="flex items-center gap-3 text-sm font-medium text-gray-500">
+                       <div className="w-5 h-5 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center text-[10px] font-black border border-purple-100">
+                          {i + 1}
+                       </div>
+                       <span className="truncate">{t.name}</span>
+                    </div>
+                  ))}
+               </div>
+
+               <div className="pt-8 border-t border-gray-50 flex items-center justify-between">
+                  <Link 
+                    href={`/campaigns/${campaign.id}`}
+                    className="text-xs font-black text-purple-600 uppercase tracking-[0.2em] hover:translate-x-2 transition-transform"
                   >
-                    <Play size={16} fill="currentColor" /> Start
+                    Edit Templates →
+                  </Link>
+                  <button className="p-3 text-gray-300 hover:text-purple-600 transition-colors">
+                     <Target size={20} />
                   </button>
-                )}
-              </div>
+               </div>
             </div>
           ))
         )}
       </div>
 
-      {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden">
-            <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-              <h2 className="text-xl font-bold">New Campaign</h2>
-              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">×</button>
-            </div>
-            <form onSubmit={handleCreateCampaign} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Campaign Name</label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full p-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g. Q1 Global Outreach"
-                  required
-                />
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
+           <div className="bg-white rounded-[48px] shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-300">
+              <div className="p-10 border-b border-gray-50">
+                 <h2 className="text-2xl font-black text-gray-900 tracking-tight">Launch Campaign</h2>
+                 <p className="text-sm text-gray-400 font-medium mt-1">Start a new personalized outreach sequence.</p>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Subject Template</label>
-                <input
-                  type="text"
-                  value={subjectTemplate}
-                  onChange={(e) => setSubjectTemplate(e.target.value)}
-                  className="w-full p-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
-                  placeholder="Hello {{ contactName }} from {{ companyName }}"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Body Template (HTML or Plain Text)</label>
-                <textarea
-                  value={bodyTemplate}
-                  onChange={(e) => setBodyTemplate(e.target.value)}
-                  className="w-full p-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 h-40 font-mono text-sm"
-                  placeholder="Hi {{ contactName }},
-
-I noticed {{ companyName }} is doing great things..."
-                  required
-                />
-              </div>
-              <div className="bg-blue-50 p-3 rounded-lg flex items-start gap-3">
-                <Info size={18} className="text-blue-600 mt-0.5" />
-                <p className="text-xs text-blue-700">
-                  Use placeholders like <code>{`{{ contactName }}`}</code> and <code>{`{{ companyName }}`}</code> to personalize your emails. Emails will be automatically scheduled for 10 AM in each recipient's timezone.
-                </p>
-              </div>
-              <div className="flex justify-end gap-4 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 shadow-sm"
-                >
-                  Create Campaign
-                </button>
-              </div>
-            </form>
-          </div>
+              <form onSubmit={handleCreateCampaign} className="p-10 space-y-8">
+                 <div>
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3">Campaign Identifier</label>
+                    <input
+                      type="text"
+                      value={newCampaignName}
+                      onChange={(e) => setNewCampaignName(e.target.value)}
+                      className="w-full p-5 bg-gray-50 border border-gray-100 rounded-3xl text-lg font-black text-gray-900 focus:bg-white focus:border-purple-400 focus:ring-4 focus:ring-purple-50 outline-none transition-all placeholder:text-gray-200"
+                      placeholder="e.g. Q1 Founder Outreach"
+                      required
+                    />
+                 </div>
+                 <div className="flex gap-4">
+                    <button
+                      type="button"
+                      onClick={() => setIsModalOpen(false)}
+                      className="flex-1 py-5 rounded-3xl text-sm font-black text-gray-400 hover:bg-gray-50 transition"
+                    >
+                      Discard
+                    </button>
+                    <button
+                      type="submit"
+                      className="flex-1 bg-purple-600 text-white py-5 rounded-3xl font-black text-sm hover:bg-purple-700 transition shadow-xl shadow-purple-100"
+                    >
+                      Initialize
+                    </button>
+                 </div>
+              </form>
+           </div>
         </div>
       )}
     </div>

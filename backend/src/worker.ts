@@ -91,6 +91,12 @@ const automationWorker = new Worker(
       const { companyId } = job.data;
       await enrichCompany(companyId);
     }
+
+    if (job.name === 'run-discovery') {
+      const { organizationId } = job.data;
+      const { discoveryService } = await import('./services/discovery.service.js');
+      await discoveryService.runDiscovery(organizationId);
+    }
     
     if (job.name === 'check-reminders') {
       console.log('Checking for follow-up reminders...');
