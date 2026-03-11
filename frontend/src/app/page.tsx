@@ -92,7 +92,7 @@ export default function LandingPage() {
             </div>
             <h2 className="text-4xl font-black text-gray-900 tracking-tight mb-6">Built for Compliant, <br />Global Scale</h2>
             <p className="text-gray-500 font-medium mb-8 leading-relaxed">
-              We aren't an email blaster. We are a precision command center. 
+              We aren&apos;t an email blaster. We are a precision command center. 
               With 10 AM local time scheduling, SPF/DKIM verification, and automated 
               Stop-on-Reply logic, your sender reputation stays elite.
             </p>
@@ -115,7 +115,7 @@ export default function LandingPage() {
              <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-indigo-700"></div>
              <Building2 size={120} className="text-white relative z-10 opacity-20" />
              <div className="absolute bottom-10 left-10 right-10 bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/20">
-                <p className="text-white font-bold mb-2 italic">"This engine scaled our employer network by 4x in 3 months."</p>
+                <p className="text-white font-bold mb-2 italic">&quot;This engine scaled our employer network by 4x in 3 months.&quot;</p>
                 <p className="text-blue-100 text-xs font-bold uppercase tracking-widest">— Growth Lead, TechCorp</p>
              </div>
           </div>

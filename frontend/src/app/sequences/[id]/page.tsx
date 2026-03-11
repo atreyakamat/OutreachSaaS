@@ -1,41 +1,56 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useState, useEffect, useCallback } from 'react';
+import { useParams } from 'next/navigation';
 import api from '@/lib/api';
-import { Plus, Save, Clock, Trash2, ArrowLeft, Send, Info } from 'lucide-react';
+import { Plus, Clock, Trash2, ArrowLeft, Send, Info } from 'lucide-react';
 import Link from 'next/link';
+import toast from 'react-hot-toast';
+
+interface Step {
+  id: string;
+  subjectTemplate: string;
+  bodyTemplate: string;
+  waitDays: number;
+  orderIndex: number;
+}
+
+interface Sequence {
+  id: string;
+  name: string;
+  steps: Step[];
+}
 
 export default function SequenceBuilderPage() {
   const { id } = useParams();
-  const router = useRouter();
-  const [sequence, setSequence] = useState<any>(null);
+  const [sequence, setSequence] = useState<Sequence | null>(null);
   const [loading, setLoading] = useState(true);
-  const [steps, setSteps] = useState<any[]>([]);
+  const [steps, setSteps] = useState<Step[]>([]);
 
   // Add Step Form
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
   const [waitDays, setWaitDays] = useState(0);
 
-  useEffect(() => {
-    fetchSequence();
-  }, [id]);
-
-  const fetchSequence = async () => {
+  const fetchSequence = useCallback(async () => {
     try {
       const response = await api.get('/sequences');
-      const seq = response.data.find((s: any) => s.id === id);
+      const seq = response.data.find((s: Sequence) => s.id === id);
       if (seq) {
         setSequence(seq);
         setSteps(seq.steps);
       }
     } catch (err) {
-      console.error('Failed to fetch sequence');
+      console.error('Failed to fetch sequence', err);
+      toast.error('Failed to load sequence details');
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchSequence();
+  }, [fetchSequence]);
 
   const handleAddStep = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,12 +61,14 @@ export default function SequenceBuilderPage() {
         waitDays: parseInt(waitDays.toString()),
         orderIndex: steps.length,
       });
+      toast.success('Step added to sequence!');
       setSteps([...steps, response.data]);
       setSubject('');
       setBody('');
       setWaitDays(0);
     } catch (err) {
-      alert('Failed to add step');
+      console.error('Failed to add step', err);
+      toast.error('Failed to add step');
     }
   };
 
@@ -59,11 +76,12 @@ export default function SequenceBuilderPage() {
     if (!confirm('Are you sure you want to enroll ALL active leads into this sequence?')) return;
     try {
       const leadsResponse = await api.get('/leads');
-      const leadIds = leadsResponse.data.map((l: any) => l.id);
+      const leadIds = leadsResponse.data.map((l: { id: string }) => l.id);
       await api.post(`/sequences/${id}/enroll`, { leadIds });
-      alert('Leads enrolled successfully!');
+      toast.success('Leads enrolled successfully!');
     } catch (err) {
-      alert('Failed to enroll leads');
+      console.error('Failed to enroll leads', err);
+      toast.error('Failed to enroll leads');
     }
   };
 

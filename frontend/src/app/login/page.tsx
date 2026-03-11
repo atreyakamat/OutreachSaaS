@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
 import Link from 'next/link';
+import toast from 'react-hot-toast';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -16,9 +17,13 @@ export default function LoginPage() {
     setError('');
     try {
       const response = await api.post('/auth/login', { email, password });
+      toast.success('Logged in successfully!');
       login(response.data.token, response.data.user);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed');
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      const errorMessage = error.response?.data?.message || 'Login failed';
+      setError(errorMessage);
+      toast.error(errorMessage);
     }
   };
 
@@ -56,7 +61,7 @@ export default function LoginPage() {
           </button>
         </form>
         <p className="mt-6 text-center text-sm text-gray-600">
-          Don't have an account?{' '}
+          Don&apos;t have an account?{' '}
           <Link href="/register" className="text-blue-600 hover:underline">Register here</Link>
         </p>
       </div>

@@ -6,20 +6,45 @@ import {
   Network, 
   GraduationCap, 
   Building2, 
-  Users, 
   ChevronRight, 
   Plus, 
-  Globe, 
   MapPin,
   TrendingUp,
   Briefcase,
-  ArrowRight
+  ArrowRight,
+  Globe
 } from 'lucide-react';
 import Link from 'next/link';
 
+interface College {
+  id: string;
+  name: string;
+  _count: {
+    students: number;
+  };
+}
+
+interface University {
+  id: string;
+  name: string;
+  city: string;
+  state: string;
+  colleges: College[];
+}
+
+interface NetworkStats {
+  totalStudents: number;
+  universityCount: number;
+  skillDistribution: [string, number][];
+}
+
+interface Student {
+  skills?: string[];
+}
+
 export default function NetworkGraphPage() {
-  const [universities, setUniversities] = useState<any[]>([]);
-  const [stats, setStats] = useState<any>(null);
+  const [universities, setUniversities] = useState<University[]>([]);
+  const [stats, setStats] = useState<NetworkStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,8 +61,8 @@ export default function NetworkGraphPage() {
       
       // Calculate basic stats for the dashboard
       const totalStudents = studentRes.data.length;
-      const skills = studentRes.data.flatMap((s: any) => s.skills || []);
-      const skillCounts = skills.reduce((acc: any, skill: string) => {
+      const skills = studentRes.data.flatMap((s: Student) => s.skills || []);
+      const skillCounts = skills.reduce((acc: Record<string, number>, skill: string) => {
         acc[skill] = (acc[skill] || 0) + 1;
         return acc;
       }, {});
@@ -45,9 +70,9 @@ export default function NetworkGraphPage() {
       setStats({
         totalStudents,
         universityCount: uniRes.data.length,
-        skillDistribution: Object.entries(skillCounts).sort((a: any, b: any) => b[1] - a[1]).slice(0, 5)
+        skillDistribution: Object.entries(skillCounts).sort((a, b) => (b[1] as number) - (a[1] as number)).slice(0, 5) as [string, number][]
       });
-    } catch (err) {
+    } catch {
       console.error('Failed to fetch network data');
     } finally {
       setLoading(false);
@@ -129,7 +154,7 @@ export default function NetworkGraphPage() {
                          <div className="text-right">
                             <p className="text-xs font-black text-indigo-600 uppercase tracking-widest">{uni.colleges.length} Colleges</p>
                             <p className="text-[10px] text-gray-400 font-bold uppercase mt-1">
-                               {uni.colleges.reduce((acc: number, c: any) => acc + c._count.students, 0)} Students
+                               {uni.colleges.reduce((acc: number, c: College) => acc + c._count.students, 0)} Students
                             </p>
                          </div>
                          <button className="p-3 bg-white rounded-2xl border border-gray-100 text-gray-400 hover:text-indigo-600 transition-all">
@@ -139,7 +164,7 @@ export default function NetworkGraphPage() {
                    </div>
                    
                    <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {uni.colleges.map((college: any) => (
+                      {uni.colleges.map((college: College) => (
                         <div key={college.id} className="p-4 bg-gray-50/50 rounded-2xl border border-gray-100 flex items-center justify-between group/college hover:bg-white hover:border-indigo-100 transition-all">
                            <div className="flex items-center gap-3">
                               <div className="w-10 h-10 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-[10px] font-black text-gray-400 group-hover/college:bg-indigo-600 group-hover/college:text-white transition-all">
@@ -169,7 +194,7 @@ export default function NetworkGraphPage() {
                     <TrendingUp size={16} /> Skill Concentration
                  </h2>
                  <div className="space-y-8">
-                    {stats?.skillDistribution.map(([skill, count]: any) => (
+                    {stats?.skillDistribution.map(([skill, count]: [string, number]) => (
                       <div key={skill} className="group">
                          <div className="flex justify-between items-end mb-2">
                             <span className="text-xs font-black uppercase tracking-widest text-indigo-100">{skill}</span>
@@ -187,7 +212,7 @@ export default function NetworkGraphPage() {
                  
                  <div className="mt-12 p-6 bg-white/5 rounded-[32px] border border-white/10">
                     <p className="text-sm font-bold text-indigo-200 leading-relaxed">
-                       "Companies on our network get direct access to this verified talent pool."
+                       &quot;Companies on our network get direct access to this verified talent pool.&quot;
                     </p>
                  </div>
               </div>

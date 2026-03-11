@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import api from '@/lib/api';
 import { 
@@ -8,7 +8,6 @@ import {
   MapPin, 
   Globe, 
   Linkedin, 
-  Plus, 
   Mail, 
   Phone, 
   Clock, 
@@ -17,32 +16,71 @@ import {
   ArrowLeft,
   Star,
   ExternalLink,
-  ChevronDown,
   UserPlus,
   TrendingUp
 } from 'lucide-react';
 import Link from 'next/link';
 
+interface Contact {
+  id: string;
+  name: string;
+  role: string;
+  email: string;
+  phone?: string;
+}
+
+interface ActivityLog {
+  id: string;
+  action: string;
+  details: string;
+  timestamp: string;
+  contact?: Contact;
+}
+
+interface PipelineEntry {
+  id: string;
+  stage: string;
+  status: string;
+  contact?: Contact;
+  nextFollowup?: string;
+}
+
+interface Company {
+  id: string;
+  companyName: string;
+  score: number;
+  status: string;
+  domain: string;
+  city: string;
+  country: string;
+  industry: string;
+  description?: string;
+  hiringSignal?: string;
+  contacts: Contact[];
+  activityLogs: ActivityLog[];
+  pipelineEntries: PipelineEntry[];
+}
+
 export default function CompanyDetailPage() {
   const { id } = useParams();
-  const [company, setCompany] = useState<any>(null);
+  const [company, setCompany] = useState<Company | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('contacts');
 
-  useEffect(() => {
-    fetchCompany();
-  }, [id]);
-
-  const fetchCompany = async () => {
+  const fetchCompany = useCallback(async () => {
     try {
       const response = await api.get(`/companies/${id}`);
       setCompany(response.data);
-    } catch (err) {
-      console.error('Failed to fetch company');
+    } catch (error) {
+      console.error('Failed to fetch company', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchCompany();
+  }, [fetchCompany]);
 
   if (loading) return <div className="p-8 text-center text-gray-500">Loading company intelligence...</div>;
   if (!company) return <div className="p-8 text-center text-red-500">Company not found.</div>;
@@ -152,7 +190,7 @@ export default function CompanyDetailPage() {
                   <p className="text-sm font-bold">No decision makers added yet.</p>
                 </div>
               ) : (
-                company.contacts.map((contact: any) => (
+                company.contacts.map((contact: Contact) => (
                   <div key={contact.id} className="bg-white p-6 rounded-[32px] shadow-sm border border-gray-100 hover:border-blue-200 transition group">
                     <div className="flex justify-between items-start mb-4">
                       <div className="w-12 h-12 rounded-2xl bg-gray-50 text-gray-400 flex items-center justify-center font-black group-hover:bg-blue-600 group-hover:text-white transition-all">
@@ -187,7 +225,7 @@ export default function CompanyDetailPage() {
           {activeTab === 'activity' && (
             <div className="bg-white rounded-[32px] shadow-sm border border-gray-100 overflow-hidden">
               <div className="divide-y divide-gray-50">
-                {company.activityLogs.map((log: any) => (
+                {company.activityLogs.map((log: ActivityLog) => (
                   <div key={log.id} className="p-6 hover:bg-gray-50/30 transition flex gap-4">
                     <div className="mt-1">
                       <div className="w-2 h-2 rounded-full bg-blue-600 ring-4 ring-blue-50"></div>
@@ -213,7 +251,7 @@ export default function CompanyDetailPage() {
               <TrendingUp size={18} className="text-blue-600" /> Pipeline Status
             </h2>
             <div className="space-y-4">
-              {company.pipelineEntries.map((entry: any) => (
+              {company.pipelineEntries.map((entry: PipelineEntry) => (
                 <div key={entry.id} className="p-4 bg-gray-50 rounded-2xl border border-gray-100/50">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">{entry.stage}</span>

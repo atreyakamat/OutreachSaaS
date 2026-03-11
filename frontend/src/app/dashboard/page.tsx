@@ -6,11 +6,8 @@ import api from '@/lib/api';
 import { 
   Users, 
   Building2, 
-  Target, 
-  Mail, 
   TrendingUp, 
   Star, 
-  Clock, 
   Bell, 
   Activity,
   ChevronRight,
@@ -20,12 +17,55 @@ import {
   PieChart
 } from 'lucide-react';
 import Link from 'next/link';
+import toast from 'react-hot-toast';
+
+interface PipelineDistribution {
+  stage: string;
+  count: number;
+}
+
+interface HighValueCompany {
+  id: string;
+  companyName: string;
+  industry: string;
+  score: number;
+  city: string;
+}
+
+interface DashboardData {
+  stats: {
+    companies: number;
+    leads: number;
+    activeSequences: number;
+    onboarded: number;
+  };
+  pipelineDistribution: PipelineDistribution[];
+  highValueCompanies: HighValueCompany[];
+}
+
+interface Followup {
+  id: string;
+  company: {
+    companyName: string;
+  };
+}
+
+interface ActivityLog {
+  id: string;
+  action: string;
+  details: string;
+  timestamp: string;
+  company: {
+    name: string;
+    companyName: string;
+  };
+}
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const [dashboardData, setDashboardData] = useState<any>(null);
-  const [followups, setFollowups] = useState<any[]>([]);
-  const [activityLogs, setActivityLogs] = useState<any[]>([]);
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [followups, setFollowups] = useState<Followup[]>([]);
+  const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -40,7 +80,8 @@ export default function DashboardPage() {
         setFollowups(followupsRes.data);
         setActivityLogs(activityRes.data);
       } catch (error) {
-        console.error('Failed to fetch dashboard data');
+        console.error('Failed to fetch dashboard data', error);
+        toast.error('Failed to load dashboard data');
       } finally {
         setLoading(false);
       }
@@ -113,7 +154,7 @@ export default function DashboardPage() {
               </div>
               
               <div className="space-y-8 relative z-10">
-                 {dashboardData?.pipelineDistribution.map((item: any) => (
+                 {dashboardData?.pipelineDistribution.map((item: PipelineDistribution) => (
                    <div key={item.stage} className="group">
                       <div className="flex justify-between items-end mb-3">
                          <span className="text-[11px] font-black uppercase tracking-widest text-gray-500 group-hover:text-blue-600 transition-colors">
@@ -141,7 +182,7 @@ export default function DashboardPage() {
                  <Activity className="text-purple-600" /> Live Feed
               </h2>
               <div className="space-y-8">
-                 {activityLogs.slice(0, 5).map((log: any) => (
+                 {activityLogs.slice(0, 5).map((log: ActivityLog) => (
                    <div key={log.id} className="flex gap-6 group">
                       <div className="relative">
                          <div className="w-12 h-12 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-xs font-black text-gray-400 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
@@ -175,7 +216,7 @@ export default function DashboardPage() {
                     <Star size={20} className="text-orange-400" fill="currentColor" /> Priority Targets
                  </h2>
                  <div className="space-y-6">
-                    {dashboardData?.highValueCompanies.map((c: any) => (
+                    {dashboardData?.highValueCompanies.map((c: HighValueCompany) => (
                       <Link href={`/companies/${c.id}`} key={c.id} className="block group">
                          <div className="flex justify-between items-center">
                             <div>
@@ -208,7 +249,7 @@ export default function DashboardPage() {
                  </span>
               </div>
               <div className="space-y-4">
-                 {followups.slice(0, 3).map((f: any) => (
+                 {followups.slice(0, 3).map((f: Followup) => (
                    <div key={f.id} className="bg-white/60 p-4 rounded-2xl border border-white flex items-center justify-between group cursor-pointer hover:bg-white transition-all">
                       <div className="flex items-center gap-3">
                          <div className="w-8 h-8 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center text-[10px] font-black">

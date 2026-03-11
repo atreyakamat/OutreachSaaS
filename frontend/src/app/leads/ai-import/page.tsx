@@ -4,12 +4,23 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { Brain, FileText, Send, Plus, X, Check, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
+
+interface ProcessedLead {
+  contactName: string;
+  companyName: string;
+  email: string;
+  city: string;
+  country: string;
+  role: string;
+  industry: string;
+}
 
 interface Tab {
   id: string;
   title: string;
   rawData: string;
-  processedLeads: any[];
+  processedLeads: ProcessedLead[];
   isProcessing: boolean;
 }
 
@@ -48,8 +59,10 @@ export default function AIImportPage() {
     try {
       const response = await api.post('/ai/process', { rawData: activeTab.rawData });
       updateActiveTab({ processedLeads: response.data, isProcessing: false });
+      toast.success('AI processing complete!');
     } catch (error) {
-      alert('AI processing failed. Make sure Ollama is running.');
+      console.error('AI processing failed', error);
+      toast.error('AI processing failed. Make sure Ollama is running.');
       updateActiveTab({ isProcessing: false });
     }
   };
@@ -57,16 +70,18 @@ export default function AIImportPage() {
   const handleFinalize = async () => {
     const allLeads = tabs.flatMap(t => t.processedLeads);
     if (allLeads.length === 0) {
-      alert('No processed leads found. Run AI processing on at least one tab.');
+      toast.error('No processed leads found. Run AI processing on at least one tab.');
       return;
     }
 
     setIsSaving(true);
     try {
       await api.post('/ai/bulk-save', { leads: allLeads });
+      toast.success('Leads saved successfully!');
       router.push('/leads');
     } catch (error) {
-      alert('Failed to save leads.');
+      console.error('Failed to save leads', error);
+      toast.error('Failed to save leads.');
     } finally {
       setIsSaving(false);
     }

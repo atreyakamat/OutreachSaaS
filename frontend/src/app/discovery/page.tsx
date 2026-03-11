@@ -3,16 +3,11 @@
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import { 
-  Search, 
-  Plus, 
   Globe, 
-  Building2, 
   Star, 
   Check, 
   Loader2, 
-  Send, 
   Database,
-  Zap,
   Sparkles,
   ArrowRight,
   RefreshCw,
@@ -21,11 +16,29 @@ import {
   MapPin
 } from 'lucide-react';
 import Link from 'next/link';
+import toast from 'react-hot-toast';
+
+interface DiscoveredCompany {
+  companyName: string;
+  domain: string;
+  score: number;
+  description: string;
+}
+
+interface QueuedCompany {
+  id: string;
+  name: string;
+  domain: string;
+  industry: string;
+  source: string;
+  city: string;
+  country: string;
+}
 
 export default function DiscoveryPage() {
   const [rawData, setRawData] = useState('');
-  const [discoveredCompanies, setDiscoveredCompanies] = useState<any[]>([]);
-  const [reviewQueue, setReviewQueue] = useState<any[]>([]);
+  const [discoveredCompanies, setDiscoveredCompanies] = useState<DiscoveredCompany[]>([]);
+  const [reviewQueue, setReviewQueue] = useState<QueuedCompany[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isQueueLoading, setIsQueueLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -41,7 +54,8 @@ export default function DiscoveryPage() {
       const response = await api.get('/ai/discovered-queue');
       setReviewQueue(response.data);
     } catch (err) {
-      console.error('Failed to fetch queue');
+      console.error('Failed to fetch queue', err);
+      toast.error('Failed to load review queue');
     } finally {
       setIsQueueLoading(false);
     }
@@ -53,8 +67,10 @@ export default function DiscoveryPage() {
     try {
       const response = await api.post('/ai/discover', { rawData });
       setDiscoveredCompanies(response.data);
+      toast.success('AI extraction complete!');
     } catch (err) {
-      alert('AI Discovery failed. Ensure Ollama is running.');
+      console.error('AI Discovery failed', err);
+      toast.error('AI Discovery failed. Ensure Ollama is running.');
     } finally {
       setIsProcessing(false);
     }
@@ -68,9 +84,10 @@ export default function DiscoveryPage() {
       setDiscoveredCompanies([]);
       setRawData('');
       fetchReviewQueue();
-      alert('Discovery data synced to review queue!');
+      toast.success('Discovery data synced to review queue!');
     } catch (err) {
-      alert('Failed to save companies.');
+      console.error('Failed to save companies', err);
+      toast.error('Failed to save companies.');
     } finally {
       setIsSaving(false);
     }
@@ -80,17 +97,20 @@ export default function DiscoveryPage() {
     try {
       await api.post(`/ai/approve-discovered/${id}`);
       setReviewQueue(reviewQueue.filter(q => q.id !== id));
+      toast.success('Company approved and moved to database');
     } catch (err) {
-      alert('Approval failed');
+      console.error('Approval failed', err);
+      toast.error('Approval failed');
     }
   };
 
   const runAutomatedCrawler = async () => {
     try {
       await api.post('/ai/run-automated-discovery');
-      alert('Crawler job started in background.');
+      toast.success('Crawler job started in background.');
     } catch (err) {
-      alert('Failed to start crawler');
+      console.error('Failed to start crawler', err);
+      toast.error('Failed to start crawler');
     }
   };
 
@@ -207,7 +227,7 @@ export default function DiscoveryPage() {
                            <Star size={14} fill="currentColor" /> {c.score}
                         </div>
                      </div>
-                     <p className="text-sm text-gray-500 font-medium leading-relaxed italic">"{c.description}"</p>
+                     <p className="text-sm text-gray-500 font-medium leading-relaxed italic">&quot;{c.description}&quot;</p>
                   </div>
                 ))
               )}

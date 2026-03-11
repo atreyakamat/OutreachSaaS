@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
 import Link from 'next/link';
+import toast from 'react-hot-toast';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
@@ -17,9 +18,13 @@ export default function RegisterPage() {
     setError('');
     try {
       const response = await api.post('/auth/register', { email, password, organizationName });
+      toast.success('Registration successful!');
       login(response.data.token, response.data.user);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Registration failed');
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { message?: string } } };
+      const errorMessage = axiosError.response?.data?.message || 'Registration failed';
+      setError(errorMessage);
+      toast.error(errorMessage);
     }
   };
 

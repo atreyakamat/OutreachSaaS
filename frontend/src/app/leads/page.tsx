@@ -1,30 +1,38 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { useState, useEffect, useCallback } from 'react';
 import api from '@/lib/api';
-import { Upload, Plus, Search, FileText, Brain, Building2, Linkedin, ExternalLink } from 'lucide-react';
-import Link from 'next/link';
+import { Plus, Search, Building2, Linkedin, ExternalLink } from 'lucide-react';
+
+interface Lead {
+  id: string;
+  contactName: string;
+  email: string;
+  company?: {
+    name: string;
+  };
+  role?: string;
+  pipelineStatus: string;
+}
 
 export default function LeadsPage() {
-  const [leads, setLeads] = useState([]);
+  const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
 
-  useEffect(() => {
-    fetchLeads();
-  }, []);
-
-  const fetchLeads = async () => {
+  const fetchLeads = useCallback(async () => {
     try {
       const response = await api.get('/leads');
       setLeads(response.data);
-    } catch (err) {
-      console.error('Failed to fetch leads');
+    } catch (error) {
+      console.error('Failed to fetch leads', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchLeads();
+  }, [fetchLeads]);
 
   if (loading) return <div className="p-8 text-center text-gray-500">Loading Decision Makers...</div>;
 
@@ -77,7 +85,7 @@ export default function LeadsPage() {
                   </td>
                 </tr>
               ) : (
-                leads.map((lead: any) => (
+                leads.map((lead: Lead) => (
                   <tr key={lead.id} className="hover:bg-gray-50/50 transition">
                     <td className="px-6 py-4">
                       <p className="font-bold text-gray-900">{lead.contactName}</p>

@@ -1,51 +1,62 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import api from '@/lib/api';
 import { 
   Mail, 
   Plus, 
-  Save, 
-  MessageSquare, 
   Target, 
-  ChevronRight, 
-  Activity,
-  Info,
-  Layers,
-  Sparkles
+  Layers
 } from 'lucide-react';
 import Link from 'next/link';
+import toast from 'react-hot-toast';
+
+interface Template {
+  id: string;
+  name: string;
+  subject?: string;
+  body?: string;
+}
+
+interface Campaign {
+  id: string;
+  name: string;
+  templates: Template[];
+}
 
 export default function CampaignsPage() {
-  const [campaigns, setCampaigns] = useState<any[]>([]);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newCampaignName, setNewCampaignName] = useState('');
 
-  useEffect(() => {
-    fetchCampaigns();
-  }, []);
-
-  const fetchCampaigns = async () => {
+  const fetchCampaigns = useCallback(async () => {
     try {
       const response = await api.get('/campaigns');
       setCampaigns(response.data);
-    } catch (err) {
-      console.error('Failed to fetch campaigns');
+    } catch (error) {
+      console.error('Failed to fetch campaigns', error);
+      toast.error('Failed to load campaigns');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchCampaigns();
+  }, [fetchCampaigns]);
 
   const handleCreateCampaign = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await api.post('/campaigns', { name: newCampaignName });
+      toast.success('Campaign created successfully!');
       setNewCampaignName('');
       setIsModalOpen(false);
       fetchCampaigns();
-    } catch (err) {
-      alert('Failed to create campaign');
+    } catch (error) {
+      console.error('Failed to create campaign', error);
+      toast.error('Failed to create campaign');
     }
   };
 
@@ -93,7 +104,7 @@ export default function CampaignsPage() {
                <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mb-8">{campaign.templates.length} Templates Active</p>
 
                <div className="space-y-3 mb-10">
-                  {campaign.templates.map((t: any, i: number) => (
+                  {campaign.templates.map((t: Template, i: number) => (
                     <div key={t.id} className="flex items-center gap-3 text-sm font-medium text-gray-500">
                        <div className="w-5 h-5 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center text-[10px] font-black border border-purple-100">
                           {i + 1}

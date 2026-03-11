@@ -4,18 +4,12 @@ import { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import { 
   ClipboardList, 
-  MessageSquare, 
-  Calendar, 
-  CheckCircle2, 
-  Clock, 
-  UserPlus, 
-  Building2,
   MoreVertical,
-  ChevronRight,
   Plus,
   Filter,
   ArrowRight,
-  Star
+  Star,
+  Clock
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -28,8 +22,24 @@ const STAGES = [
   'partner onboarded'
 ];
 
+interface PipelineEntry {
+  id: string;
+  stage: string;
+  status: string;
+  companyId: string;
+  company: {
+    companyName: string;
+    score: number;
+    industry?: string;
+  };
+  contact?: {
+    name: string;
+  };
+  nextFollowup?: string;
+}
+
 export default function PipelinePage() {
-  const [pipeline, setPipeline] = useState<any[]>([]);
+  const [pipeline, setPipeline] = useState<PipelineEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
@@ -41,7 +51,7 @@ export default function PipelinePage() {
     try {
       const response = await api.get('/pipeline');
       setPipeline(response.data);
-    } catch (err) {
+    } catch {
       console.error('Failed to fetch pipeline');
     } finally {
       setLoading(false);
@@ -53,14 +63,14 @@ export default function PipelinePage() {
     try {
       await api.patch(`/pipeline/${id}/stage`, { stage: newStage });
       fetchPipeline();
-    } catch (err) {
+    } catch {
       alert('Failed to update stage');
     } finally {
       setUpdatingId(null);
     }
   };
 
-  if (loading) return <div className="p-8 text-center text-gray-500">Loading your engine's pipeline...</div>;
+  if (loading) return <div className="p-8 text-center text-gray-500">Loading your engine&apos;s pipeline...</div>;
 
   return (
     <div className="p-8 max-w-[1600px] mx-auto">

@@ -5,7 +5,6 @@ import { useAuth } from '../context/AuthContext';
 import { 
   LogOut, 
   Building2, 
-  Mail, 
   LayoutDashboard, 
   Globe, 
   ClipboardList, 

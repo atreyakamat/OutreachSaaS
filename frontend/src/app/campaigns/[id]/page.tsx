@@ -1,49 +1,60 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useState, useEffect, useCallback } from 'react';
+import { useParams } from 'next/navigation';
 import api from '@/lib/api';
 import { 
   ArrowLeft, 
   Plus, 
-  Save, 
   Mail, 
   Sparkles, 
   Info, 
-  ChevronRight,
   Trash2
 } from 'lucide-react';
 import Link from 'next/link';
 
+interface Template {
+  id: string;
+  name: string;
+  subject: string;
+  body: string;
+}
+
+interface Campaign {
+  id: string;
+  name: string;
+  templates: Template[];
+}
+
 export default function TemplateBuilderPage() {
   const { id } = useParams();
-  const [campaign, setCampaign] = useState<any>(null);
+  const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
-  const [templates, setTemplates] = useState<any[]>([]);
+  const [templates, setTemplates] = useState<Template[]>([]);
 
   // New Template Form
   const [name, setName] = useState('');
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
 
-  useEffect(() => {
-    fetchCampaign();
-  }, [id]);
-
-  const fetchCampaign = async () => {
+  const fetchCampaign = useCallback(async () => {
     try {
       const response = await api.get('/campaigns');
-      const data = response.data.find((c: any) => c.id === id);
+      const data = response.data.find((c: Campaign) => c.id === id);
       if (data) {
         setCampaign(data);
         setTemplates(data.templates);
       }
-    } catch (err) {
-      console.error('Failed to fetch campaign');
+    } catch (error) {
+      console.error('Failed to fetch campaign', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchCampaign();
+  }, [fetchCampaign]);
 
   const handleAddTemplate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +64,8 @@ export default function TemplateBuilderPage() {
       setName('');
       setSubject('');
       setBody('');
-    } catch (err) {
+    } catch (error) {
+      console.error('Failed to add template', error);
       alert('Failed to add template');
     }
   };

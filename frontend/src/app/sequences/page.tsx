@@ -2,11 +2,25 @@
 
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
-import { Plus, Play, MoreVertical, Layout, Clock, Mail } from 'lucide-react';
+import { Plus, Play, MoreVertical, Layout, Clock } from 'lucide-react';
 import Link from 'next/link';
+import toast from 'react-hot-toast';
+
+interface Step {
+  id: string;
+  subjectTemplate: string;
+  waitDays: number;
+}
+
+interface Sequence {
+  id: string;
+  name: string;
+  status: string;
+  steps: Step[];
+}
 
 export default function SequencesPage() {
-  const [sequences, setSequences] = useState([]);
+  const [sequences, setSequences] = useState<Sequence[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [newSequenceName, setNewSequenceName] = useState('');
@@ -20,7 +34,8 @@ export default function SequencesPage() {
       const response = await api.get('/sequences');
       setSequences(response.data);
     } catch (err) {
-      console.error('Failed to fetch sequences');
+      console.error('Failed to fetch sequences', err);
+      toast.error('Failed to load sequences');
     } finally {
       setLoading(false);
     }
@@ -29,12 +44,14 @@ export default function SequencesPage() {
   const handleCreateSequence = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await api.post('/sequences', { name: newSequenceName });
+      await api.post('/sequences', { name: newSequenceName });
+      toast.success('Sequence created successfully!');
       setNewSequenceName('');
       setShowModal(false);
       fetchSequences();
     } catch (err) {
-      alert('Failed to create sequence');
+      console.error('Failed to create sequence', err);
+      toast.error('Failed to create sequence');
     }
   };
 
@@ -62,7 +79,7 @@ export default function SequencesPage() {
             <p className="text-sm font-medium">No sequences found. Create your first automated flow.</p>
           </div>
         ) : (
-          sequences.map((seq: any) => (
+          sequences.map((seq: Sequence) => (
             <div key={seq.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:border-blue-200 transition p-6">
               <div className="flex justify-between items-start mb-4">
                 <div>
@@ -79,7 +96,7 @@ export default function SequencesPage() {
               </div>
 
               <div className="space-y-3 mb-6">
-                {seq.steps.slice(0, 3).map((step: any, idx: number) => (
+                {seq.steps.slice(0, 3).map((step: Step, idx: number) => (
                   <div key={step.id} className="flex items-center gap-3 text-xs text-gray-600">
                     <div className="w-5 h-5 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center text-[10px] font-bold">
                       {idx + 1}

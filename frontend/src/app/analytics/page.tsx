@@ -12,8 +12,25 @@ import {
   Briefcase
 } from 'lucide-react';
 
+interface AnalyticsData {
+  stats: {
+    conversionRate: string;
+    leads: number;
+    topIndustry: string;
+    topIndustryPercent: number;
+  };
+  regionalDistribution: {
+    country: string;
+    count: number;
+  }[];
+  pipelineDistribution: {
+    stage: string;
+    count: number;
+  }[];
+}
+
 export default function AnalyticsPage() {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -24,7 +41,7 @@ export default function AnalyticsPage() {
     try {
       const response = await api.get('/stats');
       setData(response.data);
-    } catch (err) {
+    } catch {
       console.error('Failed to fetch analytics');
     } finally {
       setLoading(false);
@@ -34,7 +51,7 @@ export default function AnalyticsPage() {
   if (loading) return <div className="p-8 text-center text-gray-500">Generating intelligence report...</div>;
   if (!data) return <div className="p-8 text-center text-red-500">Error loading data.</div>;
 
-  const totalRegions = data.regionalDistribution?.reduce((acc: number, cur: any) => acc + cur.count, 0) || 1;
+  const totalRegions = data.regionalDistribution?.reduce((acc: number, cur: { count: number }) => acc + cur.count, 0) || 1;
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
@@ -92,7 +109,7 @@ export default function AnalyticsPage() {
               <p className="text-sm text-gray-400">No regional data available yet.</p>
             ) : (
               <div className="space-y-6">
-                 {data.regionalDistribution?.map((item: any) => (
+                 {data.regionalDistribution?.map((item) => (
                    <div key={item.country || 'Unknown'}>
                       <div className="flex justify-between text-xs mb-2 font-black uppercase tracking-widest text-gray-400">
                          <span>{item.country || 'Unknown'}</span>
@@ -118,7 +135,7 @@ export default function AnalyticsPage() {
                <p className="text-sm text-gray-400">No pipeline data available yet.</p>
             ) : (
                <div className="space-y-6">
-                  {data.pipelineDistribution?.map((item: any) => (
+                  {data.pipelineDistribution?.map((item) => (
                     <div key={item.stage}>
                        <div className="flex justify-between text-xs mb-2 font-black uppercase tracking-widest text-gray-400">
                           <span>{item.stage}</span>

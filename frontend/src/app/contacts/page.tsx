@@ -1,51 +1,67 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import api from '@/lib/api';
 import { 
   Users, 
   Search, 
-  Filter, 
   Linkedin, 
   Mail, 
   Phone, 
   Building2, 
   Star, 
   UserCheck, 
-  ChevronRight,
-  MoreVertical,
   ArrowUpRight
 } from 'lucide-react';
 import Link from 'next/link';
 
+interface Company {
+  id: string;
+  companyName: string;
+}
+
+interface Contact {
+  id: string;
+  name: string;
+  role: string;
+  email: string;
+  phone?: string;
+  linkedinUrl?: string;
+  isPrimary: boolean;
+  priorityScore: number;
+  companyId: string;
+  company: Company;
+}
+
 export default function ContactsPage() {
-  const [contacts, setContacts] = useState<any[]>([]);
+  const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
 
-  useEffect(() => {
-    fetchContacts();
-  }, [roleFilter]);
-
-  const fetchContacts = async () => {
+  const fetchContacts = useCallback(async () => {
     try {
       const response = await api.get('/contacts', {
         params: { role: roleFilter }
       });
       setContacts(response.data);
-    } catch (err) {
-      console.error('Failed to fetch contacts');
+    } catch (error) {
+      console.error('Failed to fetch contacts', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [roleFilter]);
+
+  useEffect(() => {
+    fetchContacts();
+  }, [fetchContacts]);
 
   const handleSetPrimary = async (id: string) => {
     try {
       await api.patch(`/contacts/${id}/primary`);
       fetchContacts();
-    } catch (err) {
+    } catch (error) {
+      console.error('Failed to update primary contact', error);
       alert('Failed to update primary contact');
     }
   };

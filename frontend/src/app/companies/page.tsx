@@ -1,44 +1,54 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import api from '@/lib/api';
 import { 
   Building2, 
   Search, 
   Filter, 
   Plus, 
-  MoreHorizontal, 
   Globe, 
   MapPin, 
   Star,
-  ExternalLink,
   ChevronRight,
   TrendingUp
 } from 'lucide-react';
 import Link from 'next/link';
 
+interface Company {
+  id: string;
+  companyName: string;
+  domain?: string;
+  industry?: string;
+  city?: string;
+  country?: string;
+  companySize?: string;
+  score: number;
+  status: string;
+}
+
 export default function CompanyDirectoryPage() {
-  const [companies, setCompanies] = useState<any[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [industryFilter, setIndustryFilter] = useState('');
 
-  useEffect(() => {
-    fetchCompanies();
-  }, [industryFilter]);
-
-  const fetchCompanies = async () => {
+  const fetchCompanies = useCallback(async () => {
     try {
       const response = await api.get('/companies', {
         params: { industry: industryFilter }
       });
       setCompanies(response.data);
-    } catch (err) {
-      console.error('Failed to fetch companies');
+    } catch (error) {
+      console.error('Failed to fetch companies', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [industryFilter]);
+
+  useEffect(() => {
+    fetchCompanies();
+  }, [fetchCompanies]);
 
   const filteredCompanies = companies.filter(c => 
     c.companyName.toLowerCase().includes(search.toLowerCase()) ||

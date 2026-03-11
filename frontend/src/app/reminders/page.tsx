@@ -5,17 +5,27 @@ import api from '@/lib/api';
 import { 
   Bell, 
   Clock, 
-  Calendar, 
   CheckCircle2, 
-  Building2, 
   User, 
   ArrowRight,
   AlertCircle
 } from 'lucide-react';
 import Link from 'next/link';
 
+interface Reminder {
+  id: string;
+  company: {
+    companyName: string;
+  };
+  contact?: {
+    name: string;
+  };
+  stage: string;
+  notes?: string;
+}
+
 export default function RemindersPage() {
-  const [reminders, setReminders] = useState<any[]>([]);
+  const [reminders, setReminders] = useState<Reminder[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,7 +36,7 @@ export default function RemindersPage() {
     try {
       const response = await api.get('/pipeline/followups');
       setReminders(response.data);
-    } catch (err) {
+    } catch {
       console.error('Failed to fetch reminders');
     } finally {
       setLoading(false);
@@ -74,7 +84,7 @@ export default function RemindersPage() {
                   </div>
                   {item.notes && (
                     <p className="mt-3 text-sm text-gray-400 italic bg-gray-50 p-3 rounded-xl border border-gray-100/50">
-                      Last Note: "{item.notes}"
+                      Last Note: &quot;{item.notes}&quot;
                     </p>
                   )}
                </div>
