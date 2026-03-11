@@ -18,7 +18,8 @@ import {
   Star,
   ExternalLink,
   ChevronDown,
-  UserPlus
+  UserPlus,
+  TrendingUp
 } from 'lucide-react';
 import Link from 'next/link';
 

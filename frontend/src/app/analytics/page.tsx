@@ -4,14 +4,10 @@ import { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import { 
   BarChart3, 
-  PieChart, 
-  LineChart, 
   TrendingUp, 
   Target, 
   Users, 
-  Building2, 
   CheckCircle2,
-  Calendar,
   Globe,
   Briefcase
 } from 'lucide-react';
@@ -36,6 +32,9 @@ export default function AnalyticsPage() {
   };
 
   if (loading) return <div className="p-8 text-center text-gray-500">Generating intelligence report...</div>;
+  if (!data) return <div className="p-8 text-center text-red-500">Error loading data.</div>;
+
+  const totalRegions = data.regionalDistribution?.reduce((acc: number, cur: any) => acc + cur.count, 0) || 1;
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
@@ -59,9 +58,9 @@ export default function AnalyticsPage() {
                  <Target size={24} />
                  <span className="text-sm font-black uppercase tracking-widest">Conversion Rate</span>
               </div>
-              <p className="text-5xl font-black text-gray-900 mb-2">12.4%</p>
+              <p className="text-5xl font-black text-gray-900 mb-2">{data.stats?.conversionRate || '0.0'}%</p>
               <div className="flex items-center gap-2 text-green-500 font-bold text-sm">
-                 <TrendingUp size={16} /> +2.1% from last month
+                 <TrendingUp size={16} /> Based on leads onboarded
               </div>
            </div>
            <div className="bg-white p-8 rounded-[32px] shadow-sm border border-gray-100 flex flex-col justify-between">
@@ -69,7 +68,7 @@ export default function AnalyticsPage() {
                  <Users size={24} />
                  <span className="text-sm font-black uppercase tracking-widest">Active Leads</span>
               </div>
-              <p className="text-5xl font-black text-gray-900 mb-2">{data.stats.leads}</p>
+              <p className="text-5xl font-black text-gray-900 mb-2">{data.stats?.leads || 0}</p>
               <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Engaged in sequences</p>
            </div>
         </div>
@@ -77,8 +76,8 @@ export default function AnalyticsPage() {
         <div className="bg-blue-600 p-8 rounded-[32px] shadow-xl shadow-blue-100 flex flex-col justify-between text-white relative overflow-hidden">
            <div className="relative z-10">
               <h3 className="text-lg font-black mb-4 uppercase tracking-widest opacity-80">Top Industry</h3>
-              <p className="text-4xl font-black mb-2">SaaS / Tech</p>
-              <p className="text-sm font-medium opacity-70">42% of your partner network</p>
+              <p className="text-4xl font-black mb-2 truncate">{data.stats?.topIndustry || 'N/A'}</p>
+              <p className="text-sm font-medium opacity-70">{data.stats?.topIndustryPercent || 0}% of your partner network</p>
            </div>
            <Briefcase size={140} className="absolute -bottom-10 -right-10 opacity-10" />
         </div>
@@ -89,41 +88,52 @@ export default function AnalyticsPage() {
             <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest mb-8 flex items-center gap-2">
                <Globe size={18} className="text-blue-500" /> Regional Distribution
             </h3>
-            <div className="space-y-6">
-               {data.pipelineDistribution.map((item: any) => (
-                 <div key={item.stage}>
-                    <div className="flex justify-between text-xs mb-2 font-black uppercase tracking-widest text-gray-400">
-                       <span>{item.stage}</span>
-                       <span className="text-gray-900">{item.count}</span>
-                    </div>
-                    <div className="w-full bg-gray-50 rounded-full h-3">
-                       <div 
-                         className="bg-blue-600 h-3 rounded-full shadow-sm" 
-                         style={{ width: `${(item.count / data.stats.leads) * 100}%` }}
-                       />
-                    </div>
-                 </div>
-               ))}
-            </div>
+            {data.regionalDistribution?.length === 0 ? (
+              <p className="text-sm text-gray-400">No regional data available yet.</p>
+            ) : (
+              <div className="space-y-6">
+                 {data.regionalDistribution?.map((item: any) => (
+                   <div key={item.country || 'Unknown'}>
+                      <div className="flex justify-between text-xs mb-2 font-black uppercase tracking-widest text-gray-400">
+                         <span>{item.country || 'Unknown'}</span>
+                         <span className="text-gray-900">{item.count}</span>
+                      </div>
+                      <div className="w-full bg-gray-50 rounded-full h-3">
+                         <div 
+                           className="bg-blue-600 h-3 rounded-full shadow-sm" 
+                           style={{ width: `${(item.count / totalRegions) * 100}%` }}
+                         />
+                      </div>
+                   </div>
+                 ))}
+              </div>
+            )}
          </div>
 
          <div className="bg-white p-8 rounded-[32px] shadow-sm border border-gray-100">
             <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest mb-8 flex items-center gap-2">
-               <CheckCircle2 size={18} className="text-green-500" /> Performance Trends
+               <CheckCircle2 size={18} className="text-green-500" /> Pipeline Distribution
             </h3>
-            <div className="h-64 flex items-end gap-2 px-2">
-               {[40, 70, 45, 90, 65, 80, 55, 95, 75, 85].map((h, i) => (
-                 <div key={i} className="flex-1 bg-blue-50 rounded-t-xl relative group hover:bg-blue-600 transition-all duration-300" style={{ height: `${h}%` }}>
-                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-black px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                       {h}% Growth
+            {data.pipelineDistribution?.length === 0 ? (
+               <p className="text-sm text-gray-400">No pipeline data available yet.</p>
+            ) : (
+               <div className="space-y-6">
+                  {data.pipelineDistribution?.map((item: any) => (
+                    <div key={item.stage}>
+                       <div className="flex justify-between text-xs mb-2 font-black uppercase tracking-widest text-gray-400">
+                          <span>{item.stage}</span>
+                          <span className="text-gray-900">{item.count}</span>
+                       </div>
+                       <div className="w-full bg-gray-50 rounded-full h-3">
+                          <div 
+                            className="bg-green-500 h-3 rounded-full shadow-sm" 
+                            style={{ width: `${(item.count / (data.stats?.leads || 1)) * 100}%` }}
+                          />
+                       </div>
                     </div>
-                 </div>
-               ))}
-            </div>
-            <div className="flex justify-between mt-4 px-2">
-               <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Week 1</span>
-               <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Week 10</span>
-            </div>
+                  ))}
+               </div>
+            )}
          </div>
       </div>
     </div>

@@ -26,7 +26,7 @@ const emailWorker = new Worker(
           include: { contact: true, sequenceStep: { include: { sequence: true } } },
         });
 
-        if (!emailJob || emailJob.contact.status !== 'ACTIVE') {
+        if (!emailJob) {
           await prisma.emailJob.update({
             where: { id: emailJobId },
             data: { status: 'CANCELLED' },

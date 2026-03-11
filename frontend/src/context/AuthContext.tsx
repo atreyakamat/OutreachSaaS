@@ -24,12 +24,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const router = useRouter();
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    const token = localStorage.getItem('token');
-    if (storedUser && token) {
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+    const checkAuth = () => {
+      const storedUser = localStorage.getItem('user');
+      const token = localStorage.getItem('token');
+      if (storedUser && token) {
+        setUser(JSON.parse(storedUser));
+      }
+      setLoading(false);
+    };
+
+    // Use setTimeout to avoid synchronous state update warning
+    const timer = setTimeout(checkAuth, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const login = (token: string, user: User) => {

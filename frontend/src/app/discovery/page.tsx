@@ -17,7 +17,8 @@ import {
   ArrowRight,
   RefreshCw,
   XCircle,
-  ShieldCheck
+  ShieldCheck,
+  MapPin
 } from 'lucide-react';
 import Link from 'next/link';
 

@@ -12,7 +12,8 @@ import {
   Globe, 
   MapPin,
   TrendingUp,
-  Briefcase
+  Briefcase,
+  ArrowRight
 } from 'lucide-react';
 import Link from 'next/link';
 

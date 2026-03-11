@@ -14,7 +14,8 @@ import {
   ChevronRight,
   Plus,
   Filter,
-  ArrowRight
+  ArrowRight,
+  Star
 } from 'lucide-react';
 import Link from 'next/link';
 
