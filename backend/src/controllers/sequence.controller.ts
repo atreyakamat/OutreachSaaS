@@ -53,7 +53,7 @@ export const addSequenceStep = async (req: AuthRequest, res: Response) => {
   try {
     const step = await prisma.sequenceStep.create({
       data: {
-        sequenceId,
+        sequenceId: String(sequenceId),
         subjectTemplate,
         bodyTemplate,
         waitDays: waitDays || 0,
@@ -66,16 +66,16 @@ export const addSequenceStep = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export const enrollLeads = async (req: AuthRequest, res: Response) => {
+export const enrollContacts = async (req: AuthRequest, res: Response) => {
   const { sequenceId } = req.params;
-  const { leadIds } = req.body;
+  const { contactIds } = req.body;
   const organizationId = req.user?.organizationId;
 
   if (!organizationId) return res.status(401).json({ message: 'Unauthorized' });
 
   try {
     const sequence = await prisma.sequence.findUnique({
-      where: { id: sequenceId },
+      where: { id: String(sequenceId) },
       include: { steps: { orderBy: { orderIndex: 'asc' }, take: 1 } },
     });
 
@@ -90,25 +90,28 @@ export const enrollLeads = async (req: AuthRequest, res: Response) => {
     const firstStep = sequence.steps[0];
     const now = new Date();
 
-    for (const leadId of leadIds) {
-      const lead = await prisma.lead.findUnique({ where: { id: leadId } });
-      if (!lead || lead.organizationId !== organizationId) continue;
+    for (const contactId of contactIds) {
+      const contact = await prisma.contact.findUnique({
+        where: { id: contactId },
+        include: { company: true }
+      });
+      if (!contact) continue;
 
       // Create enrollment state
       await prisma.leadSequenceState.upsert({
-        where: { leadId_sequenceId: { leadId, sequenceId } },
+        where: { contactId_sequenceId: { contactId, sequenceId: String(sequenceId) } },
         update: { currentStepId: firstStep.id, status: 'ENROLLED' },
-        create: { leadId, sequenceId, currentStepId: firstStep.id, status: 'ENROLLED' },
+        create: { contactId, sequenceId: String(sequenceId), currentStepId: firstStep.id, status: 'ENROLLED' },
       });
 
       // Schedule first step
-      const scheduledAt = getNext10AMUTC(lead.timezone);
+      const scheduledAt = getNext10AMUTC(contact.timezone || 'UTC');
       const delay = Math.max(0, scheduledAt.getTime() - now.getTime());
 
       const emailJob = await prisma.emailJob.create({
         data: {
           organizationId,
-          leadId: lead.id,
+          contactId: contact.id,
           sequenceStepId: firstStep.id,
           scheduledAt,
           status: 'QUEUED',
@@ -117,18 +120,18 @@ export const enrollLeads = async (req: AuthRequest, res: Response) => {
 
       await addEmailJob(emailJob.id, {
         emailJobId: emailJob.id,
-        to: lead.email,
+        to: contact.email,
         subjectTemplate: firstStep.subjectTemplate,
         bodyTemplate: firstStep.bodyTemplate,
         leadData: {
-          contactName: lead.contactName,
-          companyName: lead.companyName,
+          contactName: contact.name,
+          companyName: contact.company.companyName,
         },
       }, delay);
     }
 
-    res.json({ message: 'Leads enrolled and first steps scheduled' });
+    res.json({ message: 'Contacts enrolled and first steps scheduled' });
   } catch (error: any) {
-    res.status(500).json({ message: 'Error enrolling leads', error: error.message });
+    res.status(500).json({ message: 'Error enrolling contacts', error: error.message });
   }
 };
