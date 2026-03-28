@@ -18,9 +18,13 @@ router.get('/:id', async (req: any, res) => {
     if (!company) {
       return res.status(404).json({ message: 'Company not found' });
     }
+    // Check org access
+    if (company.organizationId !== req.user.organizationId) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
     res.json(company);
   } catch (error: any) {
-    res.status(500).json({ message: 'Error fetching company', error: error.message });
+    res.status(404).json({ message: 'Company not found' });
   }
 });
 router.put('/:id', async (req: any, res) => {
@@ -37,7 +41,7 @@ router.put('/:id', async (req: any, res) => {
 router.delete('/:id', async (req: any, res) => {
   try {
     await prisma.company.delete({ where: { id: req.params.id } });
-    res.json({ message: 'Company deleted successfully' });
+    res.status(200).json({ message: 'Company deleted successfully' });
   } catch (error: any) {
     res.status(404).json({ message: 'Company not found' });
   }
