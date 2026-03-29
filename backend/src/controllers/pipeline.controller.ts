@@ -28,7 +28,7 @@ export const getPipeline = async (req: AuthRequest, res: Response) => {
 };
 
 export const updatePipelineStage = async (req: AuthRequest, res: Response) => {
-  const { id } = req.params;
+  const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const { stage, contactId, nextFollowup, notes, status } = req.body;
 
   try {

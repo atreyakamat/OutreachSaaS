@@ -18,21 +18,20 @@ export const createLead = async (req: AuthRequest, res: Response) => {
   if (!organizationId) return res.status(401).json({ message: 'Unauthorized' });
 
   try {
-    const lead = await prisma.lead.create({
+    const contact = await prisma.contact.create({
       data: {
         companyId,
-        contactName,
+        name: contactName,
         role,
         email,
-        linkedinProfile,
+        linkedinUrl: linkedinProfile,
         timezone: timezone || 'UTC',
-        pipelineStatus: 'FOUND',
       },
     });
 
-    res.status(201).json(lead);
+    res.status(201).json(contact);
   } catch (error: any) {
-    res.status(500).json({ message: 'Error creating lead', error: error.message });
+    res.status(500).json({ message: 'Error creating contact', error: error.message });
   }
 };
 
@@ -41,14 +40,14 @@ export const getLeads = async (req: AuthRequest, res: Response) => {
   if (!organizationId) return res.status(401).json({ message: 'Unauthorized' });
 
   try {
-    const leads = await prisma.lead.findMany({
+    const contacts = await prisma.contact.findMany({
       where: { company: { organizationId } },
       include: { company: true },
       orderBy: { createdAt: 'desc' },
     });
-    res.json(leads);
+    res.json(contacts);
   } catch (error: any) {
-    res.status(500).json({ message: 'Error fetching leads', error: error.message });
+    res.status(500).json({ message: 'Error fetching contacts', error: error.message });
   }
 };
 

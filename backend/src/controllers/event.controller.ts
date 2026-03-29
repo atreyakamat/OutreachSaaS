@@ -14,27 +14,21 @@ export const handleEvent = async (req: Request, res: Response) => {
       },
     });
 
-    // 2. If it's a reply, stop the sequence for this lead
+    // 2. If it's a reply, stop the sequence for this contact
     if (type === 'REPLY') {
       const emailJob = await prisma.emailJob.findUnique({
         where: { id: emailJobId },
-        include: { lead: true },
+        include: { contact: true },
       });
 
       if (emailJob) {
-        // Mark lead as REPLIED
-        await prisma.lead.update({
-          where: { id: emailJob.leadId },
-          data: { status: 'REPLIED' },
-        });
-
-        // Update all active sequence states for this lead to STOPPED_REPLY
+        // Update all active sequence states for this contact to STOPPED_REPLY
         await prisma.leadSequenceState.updateMany({
-          where: { leadId: emailJob.leadId, status: 'ENROLLED' },
+          where: { contactId: emailJob.contactId, status: 'ENROLLED' },
           data: { status: 'STOPPED_REPLY' },
         });
 
-        console.log(`[OUTREACH ENGINE] Sequence stopped for ${emailJob.lead.email} due to REPLY`);
+        console.log(`[OUTREACH ENGINE] Sequence stopped for ${emailJob.contact.email} due to REPLY`);
       }
     }
 
