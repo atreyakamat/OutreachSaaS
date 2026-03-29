@@ -88,7 +88,9 @@ export const runAutomatedDiscovery = async (req: AuthRequest, res: Response) => 
 
   try {
     const { automationQueue } = await import('../services/queue.service.js');
-    await automationQueue.add('run-discovery', { organizationId });
+    if (automationQueue) {
+      await automationQueue.add('run-discovery', { organizationId });
+    }
     res.json({ message: 'Discovery job queued.' });
   } catch (error: any) {
     res.status(500).json({ message: 'Failed to queue discovery', error: error.message });
@@ -111,7 +113,7 @@ export const getDiscoveredCompanies = async (req: AuthRequest, res: Response) =>
 };
 
 export const approveDiscoveredCompany = async (req: AuthRequest, res: Response) => {
-  const { id } = req.params;
+  const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const organizationId = req.user?.organizationId;
 
   try {

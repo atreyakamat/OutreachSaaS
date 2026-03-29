@@ -39,7 +39,7 @@ export const getCampaigns = async (req: AuthRequest, res: Response) => {
 };
 
 export const createTemplate = async (req: AuthRequest, res: Response) => {
-  const { campaignId } = req.params;
+  const campaignId = Array.isArray(req.params.campaignId) ? req.params.campaignId[0] : req.params.campaignId;
   const { name, subject, body } = req.body;
 
   try {

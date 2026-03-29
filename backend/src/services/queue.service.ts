@@ -42,8 +42,17 @@ export const scheduleReminderCheck = async () => {
   if (!automationQueue) return;
   try {
     await automationQueue.add('check-reminders', {}, {
-      repeat: { pattern: '0 9 * * *' } 
+      repeat: { pattern: '0 9 * * *' }
     });
+  } catch (err) {
+    // Fail silently
+  }
+};
+
+export const closeQueues = async () => {
+  try {
+    if (emailQueue) await emailQueue.close();
+    if (automationQueue) await automationQueue.close();
   } catch (err) {
     // Fail silently
   }

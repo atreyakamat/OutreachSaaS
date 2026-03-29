@@ -4,6 +4,61 @@ import prisma from '../config/prisma.js';
 
 const router = Router();
 
+router.get('/dashboard', authMiddleware, async (req: any, res: Response) => {
+  const organizationId = req.user.organizationId;
+
+  try {
+    const [companiesCount, contactsCount, activeSequencesCount, emailsSentCount] = await Promise.all([
+      prisma.company.count({ where: { organizationId } }),
+      prisma.contact.count({ where: { company: { organizationId } } }),
+      prisma.sequence.count({ where: { organizationId, status: 'ACTIVE' } }),
+      prisma.emailJob.count({ where: { organizationId, status: 'SENT' } }),
+    ]);
+
+    res.json({
+      totalCompanies: companiesCount,
+      totalContacts: contactsCount,
+      activeSequences: activeSequencesCount,
+      emailsSent: emailsSentCount,
+    });
+  } catch (error: any) {
+    res.status(500).json({ message: 'Error fetching dashboard stats', error: error.message });
+  }
+});
+
+router.get('/analytics', authMiddleware, async (req: any, res: Response) => {
+  const organizationId = req.user.organizationId;
+
+  try {
+    const [companiesCount, contactsCount, onboardedCount] = await Promise.all([
+      prisma.company.count({ where: { organizationId } }),
+      prisma.contact.count({ where: { company: { organizationId } } }),
+      prisma.outreachPipeline.count({ where: { company: { organizationId }, stage: 'partner onboarded' } }),
+    ]);
+
+    // Regional Distribution
+    const regionalDistribution = await prisma.company.groupBy({
+      by: ['country'],
+      where: { organizationId, country: { not: null } },
+      _count: true,
+      orderBy: { _count: { country: 'desc' } },
+      take: 5,
+    });
+
+    const conversionRate = contactsCount > 0 ? ((onboardedCount / contactsCount) * 100).toFixed(1) : "0.0";
+
+    res.json({
+      conversionRate: parseFloat(conversionRate),
+      regionalPerformance: regionalDistribution.map(item => ({
+        country: item.country,
+        count: item._count,
+      })),
+    });
+  } catch (error: any) {
+    res.status(500).json({ message: 'Error fetching analytics', error: error.message });
+  }
+});
+
 router.get('/', authMiddleware, async (req: any, res: Response) => {
   const organizationId = req.user.organizationId;
 
@@ -50,8 +105,8 @@ router.get('/', authMiddleware, async (req: any, res: Response) => {
 
     const conversionRate = leadsCount > 0 ? ((onboardedCount / leadsCount) * 100).toFixed(1) : "0.0";
     const topIndustry = topIndustryRaw.length > 0 ? topIndustryRaw[0].industry : "N/A";
-    const topIndustryPercent = companiesCount > 0 && topIndustryRaw.length > 0 
-      ? Math.round((topIndustryRaw[0]._count / companiesCount) * 100) 
+    const topIndustryPercent = companiesCount > 0 && topIndustryRaw.length > 0
+      ? Math.round((topIndustryRaw[0]._count / companiesCount) * 100)
       : 0;
 
     res.json({
